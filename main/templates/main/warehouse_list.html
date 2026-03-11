@@ -1,0 +1,34 @@
+{% extends "main/base.html" %}
+
+{% block title %}Ombor{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow rounded-lg p-6">
+    <h1 class="text-xl font-semibold mb-4">Ombor</h1>
+
+    {% if items %}
+        <div class="space-y-2">
+            {% for item in items %}
+                <a href="{% url 'main:item_detail' item.pk %}"
+                   class="block border border-gray-200 rounded px-4 py-3 hover:bg-gray-50">
+                    <div class="flex justify-between text-sm">
+                        <div>
+                            <div class="font-medium">{{ item.display_name }}</div>
+                            <div class="text-gray-500">
+                                QR: {{ item.qr_id }}
+                                {% if item.client_phone %} · {{ item.client_phone }}{% endif %}
+                            </div>
+                        </div>
+                        <div class="text-right text-xs text-gray-500">
+                            {{ item.purchase_date }}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-sm text-gray-600">Hozircha omborda mahsulot yo'q.</p>
+    {% endif %}
+</div>
+{% endblock %}
+

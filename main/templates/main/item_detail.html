@@ -1,0 +1,43 @@
+{% extends "main/base.html" %}
+
+{% block title %}Mahsulot tafsilotlari{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow rounded-lg p-6 space-y-4">
+    <div class="flex justify-between items-start">
+        <div>
+            <h1 class="text-xl font-semibold">{{ item.display_name }}</h1>
+            <p class="text-sm text-gray-500">QR: {{ item.qr_id }}</p>
+        </div>
+        <div class="text-right text-xs text-gray-500">
+            Sotib olingan sana: {{ item.purchase_date }}
+        </div>
+    </div>
+
+    {% if item.custom_description %}
+        <p class="text-sm text-gray-700 whitespace-pre-line">
+            {{ item.custom_description }}
+        </p>
+    {% endif %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div class="space-y-1">
+            <div><span class="font-medium">Mijoz telefoni:</span> {{ item.client_phone|default:"-" }}</div>
+            <div><span class="font-medium">Narxi:</span> {{ item.buy_price|default:"-" }}</div>
+        </div>
+        <div class="space-y-1">
+            <div class="font-medium">Kafolat:</div>
+            {% if item.warranty_until_date %}
+                <div>Tugash sanasi: {{ item.warranty_until_date }}</div>
+            {% endif %}
+            {% if item.warranty_mileage %}
+                <div>Maksimal yurish: {{ item.warranty_mileage }} {{ item.mileage_unit }}</div>
+            {% endif %}
+            {% if not item.warranty_until_date and not item.warranty_mileage %}
+                <div>-</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

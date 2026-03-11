@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8">
+    <title>Do'kon ro'yxatdan o'tkazish</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+<main class="min-h-screen flex items-center justify-center px-4">
+    <div class="bg-white shadow rounded-lg p-6 w-full max-w-md">
+        <h1 class="text-xl font-semibold mb-4 text-center">Yangi do'kon ro'yxatdan o'tkazish</h1>
+
+        {% if form.non_field_errors %}
+            <div class="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="post" novalidate class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-medium mb-1" for="{{ form.name.id_for_label }}">
+                    Do'kon nomi
+                </label>
+                {{ form.name }}
+                {% for error in form.name.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1" for="{{ form.username.id_for_label }}">
+                    Login
+                </label>
+                {{ form.username }}
+                {% for error in form.username.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1" for="{{ form.password1.id_for_label }}">
+                    Parol
+                </label>
+                {{ form.password1 }}
+                {% for error in form.password1.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium mb-1" for="{{ form.password2.id_for_label }}">
+                    Parolni tasdiqlang
+                </label>
+                {{ form.password2 }}
+                {% for error in form.password2.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-blue-600 text-white py-2 rounded text-sm">
+                Ro'yxatdan o'tish
+            </button>
+        </form>
+
+        <p class="mt-4 text-xs text-gray-500 text-center">
+            Ro'yxatdan o'tgandan so'ng login va parol bilan kirishingiz mumkin.
+        </p>
+    </div>
+</main>
+</body>
+</html>
+

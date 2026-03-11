@@ -1,0 +1,28 @@
+{% extends "main/base.html" %}
+
+{% block title %}Bosh sahifa{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow rounded-lg p-6 space-y-4">
+    <h1 class="text-xl font-semibold mb-2">QR bilan ishlash</h1>
+    <p class="text-gray-600 text-sm">
+        Ishchilar QR kodni skaner qilib yoki qo'lda ID kiritib mahsulotni omborga qo'shishlari mumkin.
+    </p>
+    <form method="get" action="" class="flex space-x-2 mt-4">
+        <input type="text" name="qr_id" placeholder="QR ID kiriting"
+               class="flex-1 border rounded px-3 py-2 text-sm" required>
+        <button type="submit"
+                class="bg-blue-600 text-white px-4 py-2 rounded text-sm">
+            Davom etish
+        </button>
+    </form>
+    {% if request.GET.qr_id %}
+        <div class="mt-4 text-sm">
+            <a href="{% url 'main:qr_handler' request.GET.qr_id %}" class="text-blue-600 underline">
+                "{{ request.GET.qr_id }}" uchun mahsulot yaratish / ko'rish
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

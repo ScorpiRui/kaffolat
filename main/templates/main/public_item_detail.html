@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="utf-8">
+    <title>{{ item.display_name }} - Kafolat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+<main class="max-w-xl mx-auto px-4 py-8">
+    <div class="bg-white shadow rounded-lg p-6 space-y-4">
+        <header class="flex items-center space-x-3">
+            {% if shop.logo %}
+                <img src="{{ shop.logo.url }}" alt="{{ shop.name }}" class="w-10 h-10 rounded-full object-cover">
+            {% endif %}
+            <div>
+                <h1 class="text-lg font-semibold">{{ shop.name }}</h1>
+            </div>
+        </header>
+
+        <section class="border-t pt-4 space-y-2 text-sm">
+            <div class="font-semibold text-base">{{ item.display_name }}</div>
+            {% if item.custom_description %}
+                <p class="text-gray-700 whitespace-pre-line">{{ item.custom_description }}</p>
+            {% endif %}
+            <div class="text-gray-600">
+                Xarid qilingan sana: {{ item.purchase_date }}
+            </div>
+            {% if item.buy_price %}
+                <div class="text-gray-600">
+                    Narx: {{ item.buy_price }}
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="border-t pt-4 text-sm space-y-1">
+            <div class="font-semibold">Kafolat ma'lumotlari</div>
+            {% if item.warranty_until_date %}
+                <div>Tugash sanasi: {{ item.warranty_until_date }}</div>
+            {% endif %}
+            {% if item.warranty_mileage %}
+                <div>Yurish cheklovi: {{ item.warranty_mileage }} {{ item.mileage_unit }}</div>
+            {% endif %}
+            {% if not item.warranty_until_date and not item.warranty_mileage %}
+                <div>Kafolat ma'lumoti kiritilmagan.</div>
+            {% endif %}
+        </section>
+    </div>
+</main>
+</body>
+</html>
+
