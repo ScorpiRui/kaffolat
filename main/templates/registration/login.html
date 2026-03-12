@@ -2,17 +2,42 @@
 <html lang="uz">
 <head>
     <meta charset="utf-8">
-    <title>Do'kon uchun kirish</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kirish</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        input { font-size: 16px !important; }
+    </style>
 </head>
-<body class="bg-gray-100">
-<main class="min-h-screen flex items-center justify-center px-4">
-    <div class="bg-white shadow rounded-lg p-6 w-full max-w-md">
-        <h1 class="text-xl font-semibold mb-4 text-center">Do'kon paneliga kirish</h1>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <div class="flex-1 flex flex-col justify-center px-6 py-12">
+
+        <!-- Logo / brand -->
+        <div class="flex flex-col items-center mb-10">
+            <div class="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mb-4 shadow-lg">
+                <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806
+                             3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806
+                             3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946
+                             3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946
+                             3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806
+                             3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806
+                             3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946
+                             3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946
+                             3.42 3.42 0 013.138-3.138z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">Kaffolat</h1>
+            <p class="text-sm text-gray-500 mt-1">Do'kon paneliga kirish</p>
+        </div>
 
         {% if form.errors %}
-            <div class="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">
+            <div class="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl mb-4">
                 Login yoki parol noto'g'ri.
             </div>
         {% endif %}
@@ -21,31 +46,33 @@
             {% csrf_token %}
 
             <div>
-                <label class="block text-sm font-medium mb-1" for="{{ form.username.id_for_label }}">
-                    Login
-                </label>
-                {{ form.username }}
+                <label class="block text-sm font-medium text-gray-700 mb-1.5"
+                       for="{{ form.username.id_for_label }}">Login</label>
+                <input type="text" name="username" id="{{ form.username.id_for_label }}"
+                       autocomplete="username" autofocus
+                       class="w-full border border-gray-300 bg-white rounded-xl px-4 py-3
+                              text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="Loginni kiriting">
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-1" for="{{ form.password.id_for_label }}">
-                    Parol
-                </label>
-                {{ form.password }}
+                <label class="block text-sm font-medium text-gray-700 mb-1.5"
+                       for="{{ form.password.id_for_label }}">Parol</label>
+                <input type="password" name="password" id="{{ form.password.id_for_label }}"
+                       autocomplete="current-password"
+                       class="w-full border border-gray-300 bg-white rounded-xl px-4 py-3
+                              text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="Parolni kiriting">
             </div>
 
             <button type="submit"
-                    class="w-full bg-blue-600 text-white py-2 rounded text-sm">
+                    class="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-xl text-base mt-2">
                 Kirish
             </button>
         </form>
 
-        <p class="mt-4 text-xs text-gray-500 text-center">
-            Yangi do'kon bormi?
-            <a href="{% url 'main:shop_register' %}" class="text-blue-600 underline">Ro'yxatdan o'tkazish</a>
-        </p>
     </div>
-</main>
+
 </body>
 </html>
 

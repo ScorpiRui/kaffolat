@@ -1,28 +1,214 @@
 {% extends "main/base.html" %}
 
-{% block title %}Bosh sahifa{% endblock %}
+{% block title %}Skaner{% endblock %}
 
-{% block content %}
-<div class="bg-white shadow rounded-lg p-6 space-y-4">
-    <h1 class="text-xl font-semibold mb-2">QR bilan ishlash</h1>
-    <p class="text-gray-600 text-sm">
-        Ishchilar QR kodni skaner qilib yoki qo'lda ID kiritib mahsulotni omborga qo'shishlari mumkin.
-    </p>
-    <form method="get" action="" class="flex space-x-2 mt-4">
-        <input type="text" name="qr_id" placeholder="QR ID kiriting"
-               class="flex-1 border rounded px-3 py-2 text-sm" required>
-        <button type="submit"
-                class="bg-blue-600 text-white px-4 py-2 rounded text-sm">
-            Davom etish
-        </button>
-    </form>
-    {% if request.GET.qr_id %}
-        <div class="mt-4 text-sm">
-            <a href="{% url 'main:qr_handler' request.GET.qr_id %}" class="text-blue-600 underline">
-                "{{ request.GET.qr_id }}" uchun mahsulot yaratish / ko'rish
-            </a>
-        </div>
-    {% endif %}
-</div>
+{% block header_right %}
+<a href="{% url 'logout' %}"
+   class="text-xs text-gray-400 border border-gray-200 rounded-full px-3 py-1">
+    Chiqish
+</a>
 {% endblock %}
 
+{% block content %}
+
+<!-- Normal scanner UI -->
+<div id="normalView" class="flex flex-col items-center" style="min-height: calc(100vh - 200px);">
+
+    <!-- Instruction text -->
+    <div class="text-center mt-6 mb-8 px-6">
+        <p class="text-gray-800 font-semibold text-xl leading-snug">
+            Ma'lumotlarni ko'rish uchun<br>QR kodni skanerlang!
+        </p>
+    </div>
+
+    <!-- Static viewfinder (camera off) -->
+    <div class="relative" style="width:270px; height:270px;">
+        <div class="absolute inset-0 rounded-2xl" style="background:rgba(200,200,220,0.25);"></div>
+        <div class="absolute top-0 left-0 w-10 h-10"
+             style="border-top:4px solid #3B82F6;border-left:4px solid #3B82F6;border-radius:10px 0 0 0;"></div>
+        <div class="absolute top-0 right-0 w-10 h-10"
+             style="border-top:4px solid #3B82F6;border-right:4px solid #3B82F6;border-radius:0 10px 0 0;"></div>
+        <div class="absolute bottom-0 left-0 w-10 h-10"
+             style="border-bottom:4px solid #3B82F6;border-left:4px solid #3B82F6;border-radius:0 0 0 10px;"></div>
+        <div class="absolute bottom-0 right-0 w-10 h-10"
+             style="border-bottom:4px solid #3B82F6;border-right:4px solid #3B82F6;border-radius:0 0 10px 0;"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <button id="scanBtn"
+                    class="bg-blue-500 text-white font-semibold rounded-full px-7 py-3
+                           text-sm shadow-lg active:bg-blue-600">
+                QR code ni ishga tushuring
+            </button>
+        </div>
+    </div>
+
+    <!-- Qo'lda kiriting -->
+    <div class="mt-auto pt-10 pb-4 w-full px-4">
+        <button id="manualBtn"
+                class="bg-white text-blue-600 font-semibold rounded-full px-6 py-2.5
+                       text-sm shadow-sm border border-gray-200 active:bg-gray-50">
+            Qo'lda kiriting
+        </button>
+    </div>
+
+    <!-- Manual input panel -->
+    <div id="manualPanel" class="hidden w-full px-4 pb-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+            <form id="qrForm" class="flex space-x-2">
+                <input id="qrInput" type="text" placeholder="QR-00123" required
+                       class="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-gray-900
+                              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit"
+                        class="bg-blue-600 text-white px-5 rounded-xl font-bold active:bg-blue-700 flex-shrink-0">
+                    →
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Full-screen camera overlay (hidden until camera starts) -->
+<div id="cameraOverlay"
+     class="hidden fixed inset-0 z-50"
+     style="background:#000;">
+
+    <!-- Full-screen video -->
+    <video id="video" autoplay playsinline muted
+           class="absolute inset-0 w-full h-full object-cover"></video>
+    <canvas id="canvas" class="hidden"></canvas>
+
+    <!-- Dark vignette around viewfinder -->
+    <div class="absolute inset-0 pointer-events-none"
+         style="background: radial-gradient(ellipse 55% 55% at 50% 46%,
+                transparent 0%, rgba(0,0,0,0.55) 100%);">
+    </div>
+
+    <!-- Corner brackets (centred in screen) -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none"
+         style="padding-bottom:80px;">
+        <div class="relative" style="width:260px;height:260px;">
+            <div class="absolute top-0 left-0 w-12 h-12"
+                 style="border-top:4px solid #fff;border-left:4px solid #fff;border-radius:12px 0 0 0;"></div>
+            <div class="absolute top-0 right-0 w-12 h-12"
+                 style="border-top:4px solid #fff;border-right:4px solid #fff;border-radius:0 12px 0 0;"></div>
+            <div class="absolute bottom-0 left-0 w-12 h-12"
+                 style="border-bottom:4px solid #fff;border-left:4px solid #fff;border-radius:0 0 0 12px;"></div>
+            <div class="absolute bottom-0 right-0 w-12 h-12"
+                 style="border-bottom:4px solid #fff;border-right:4px solid #fff;border-radius:0 0 12px 0;"></div>
+        </div>
+    </div>
+
+    <!-- Hint text -->
+    <div class="absolute left-0 right-0 text-center text-white text-sm font-medium pointer-events-none"
+         style="bottom: calc(50% - 200px);">
+        QR kodni ramkaga yo'naltiring
+    </div>
+
+    <!-- Close button -->
+    <button id="stopBtn"
+            class="absolute top-5 right-5 bg-black bg-opacity-40 text-white
+                   rounded-full p-3 active:bg-opacity-70"
+            style="backdrop-filter:blur(4px);">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+</div>
+
+<!-- jsQR -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+(function () {
+    const scanBtn      = document.getElementById('scanBtn');
+    const stopBtn      = document.getElementById('stopBtn');
+    const video        = document.getElementById('video');
+    const canvas       = document.getElementById('canvas');
+    const cameraOverlay = document.getElementById('cameraOverlay');
+    const manualBtn    = document.getElementById('manualBtn');
+    const manualPanel  = document.getElementById('manualPanel');
+    const qrForm       = document.getElementById('qrForm');
+    const qrInput      = document.getElementById('qrInput');
+    let stream = null, raf = null;
+
+    function redirectToQr(code) {
+        try {
+            const url = new URL(code);
+            const id = url.searchParams.get('id');
+            if (id) code = id;
+        } catch (_) {}
+        window.location.href = "{% url 'main:qr_handler' 'PLACEHOLDER' %}"
+            .replace('PLACEHOLDER', encodeURIComponent(code));
+    }
+
+    function tick() {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width  = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+            if (code) { stopCamera(); redirectToQr(code.data); return; }
+        }
+        raf = requestAnimationFrame(tick);
+    }
+
+    function stopCamera() {
+        if (raf) cancelAnimationFrame(raf);
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        stream = null;
+        cameraOverlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    async function startCamera() {
+        // Telegram Mini App native scanner
+        if (window.Telegram?.WebApp?.showScanQrPopup) {
+            Telegram.WebApp.showScanQrPopup({}, function (text) {
+                Telegram.WebApp.closeScanQrPopup();
+                redirectToQr(text);
+            });
+            return;
+        }
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            video.srcObject = stream;
+            video.play();
+            cameraOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            raf = requestAnimationFrame(tick);
+        } catch (_) {
+            // Fallback: file picker
+            const inp = document.createElement('input');
+            inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
+            inp.onchange = async (e) => {
+                const file = e.target.files[0]; if (!file) return;
+                const bmp = await createImageBitmap(file);
+                const off = new OffscreenCanvas(bmp.width, bmp.height);
+                const ctx = off.getContext('2d'); ctx.drawImage(bmp, 0, 0);
+                const img  = ctx.getImageData(0, 0, bmp.width, bmp.height);
+                const code = jsQR(img.data, img.width, img.height);
+                if (code) redirectToQr(code.data);
+                else alert("QR kod topilmadi.");
+            };
+            inp.click();
+        }
+    }
+
+    scanBtn.addEventListener('click', startCamera);
+    stopBtn.addEventListener('click', stopCamera);
+
+    manualBtn.addEventListener('click', function () {
+        manualPanel.classList.toggle('hidden');
+        if (!manualPanel.classList.contains('hidden')) qrInput.focus();
+    });
+
+    qrForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const val = qrInput.value.trim();
+        if (val) redirectToQr(val);
+    });
+})();
+</script>
+{% endblock %}

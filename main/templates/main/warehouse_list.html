@@ -3,32 +3,53 @@
 {% block title %}Ombor{% endblock %}
 
 {% block content %}
-<div class="bg-white shadow rounded-lg p-6">
-    <h1 class="text-xl font-semibold mb-4">Ombor</h1>
+<div class="space-y-3">
+
+    <h1 class="text-lg font-bold text-gray-900 px-1">Ombor</h1>
 
     {% if items %}
-        <div class="space-y-2">
-            {% for item in items %}
-                <a href="{% url 'main:item_detail' item.pk %}"
-                   class="block border border-gray-200 rounded px-4 py-3 hover:bg-gray-50">
-                    <div class="flex justify-between text-sm">
-                        <div>
-                            <div class="font-medium">{{ item.display_name }}</div>
-                            <div class="text-gray-500">
-                                QR: {{ item.qr_id }}
-                                {% if item.client_phone %} · {{ item.client_phone }}{% endif %}
-                            </div>
-                        </div>
-                        <div class="text-right text-xs text-gray-500">
-                            {{ item.purchase_date }}
-                        </div>
-                    </div>
-                </a>
-            {% endfor %}
-        </div>
+        {% for item in items %}
+        <a href="{% url 'main:item_detail' item.pk %}"
+           class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
+            <div class="flex items-center space-x-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0
+                            text-blue-600 font-bold text-sm">
+                    {{ item.display_name|slice:":1"|upper }}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
+                    <p class="text-xs text-gray-400 truncate">
+                        {{ item.qr_id }}{% if item.client_phone %} · {{ item.client_phone }}{% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 flex-shrink-0 ml-2">
+                <div class="text-right">
+                    <p class="text-xs text-gray-400">{{ item.purchase_date }}</p>
+                    {% if item.warranty_until_date %}
+                    <p class="text-xs {% if item.warranty_is_valid %}text-green-500{% else %}text-red-400{% endif %}">
+                        {% if item.warranty_is_valid %}✓ Kafolat{% else %}✗ Muddati o'tgan{% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+        </a>
+        {% endfor %}
     {% else %}
-        <p class="text-sm text-gray-600">Hozircha omborda mahsulot yo'q.</p>
+        <div class="bg-white rounded-2xl p-10 text-center shadow-sm">
+            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+            </div>
+            <p class="text-sm font-medium text-gray-400">Ombor hozircha bo'sh</p>
+            <p class="text-xs text-gray-300 mt-1">QR skaner orqali mahsulot qo'shing</p>
+        </div>
     {% endif %}
+
 </div>
 {% endblock %}
-

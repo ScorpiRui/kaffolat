@@ -13,7 +13,10 @@ class Shop(models.Model):
     )
     name = models.CharField(max_length=255)
     logo = models.ImageField(upload_to="shop_logos/", blank=True, null=True)
+    phone = models.CharField(max_length=32, blank=True)
+    location = models.CharField(max_length=255, blank=True)
     language = models.CharField(max_length=10, default="uz")
+    warranty_mileage_enabled = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:

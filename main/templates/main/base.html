@@ -3,33 +3,125 @@
 <head>
     <meta charset="utf-8">
     <title>{% block title %}Kaffolat{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        input, select, textarea { font-size: 16px !important; }
+        body { background: #EEEDF4; }
+        .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 8px); }
+        .nav-item { transition: color 0.15s; }
+        .nav-item:active { opacity: 0.7; }
+        .nav-active-icon {
+            background: #EEF2FF;
+            border-radius: 14px;
+            padding: 6px 14px;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-<div class="min-h-screen">
-    <header class="bg-white shadow">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+<body class="text-gray-900 max-w-lg mx-auto min-h-screen">
+
+<div class="min-h-screen flex flex-col">
+
+    <!-- Floating header card -->
+    <div class="px-4 pt-4 pb-2 sticky top-0 z-20" style="background:#EEEDF4;">
+        <header class="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3 min-w-0">
                 {% if shop and shop.logo %}
-                    <img src="{{ shop.logo.url }}" alt="{{ shop.name }}" class="w-10 h-10 rounded-full object-cover">
-                {% endif %}
-                <div>
-                    <div class="font-semibold text-lg">
-                        {% if shop %}{{ shop.name }}{% else %}Kaffolat{% endif %}
+                    <img src="{{ shop.logo.url }}" alt="{{ shop.name }}"
+                         class="w-11 h-11 rounded-full object-cover flex-shrink-0">
+                {% else %}
+                    <div class="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center
+                                text-white font-bold text-lg flex-shrink-0">
+                        {% if shop %}{{ shop.name|slice:":1"|upper }}{% else %}K{% endif %}
                     </div>
+                {% endif %}
+                <div class="min-w-0">
+                    <p class="font-bold text-gray-900 text-base truncate leading-tight">
+                        {% if shop %}{{ shop.name }}{% else %}Kaffolat{% endif %}
+                    </p>
+                    {% if shop %}
+                    <p class="text-xs text-gray-400 leading-tight">ID: {{ shop.pk }}</p>
+                    {% endif %}
                 </div>
             </div>
-            <nav class="space-x-4 text-sm">
-                <a href="{% url 'main:shop_home' %}" class="text-gray-700 hover:text-black">Bosh sahifa</a>
-                <a href="{% url 'main:warehouse_list' %}" class="text-gray-700 hover:text-black">Ombor</a>
-            </nav>
-        </div>
-    </header>
-    <main class="max-w-4xl mx-auto px-4 py-6">
+            {% block header_right %}{% endblock %}
+        </header>
+    </div>
+
+    <!-- Page content -->
+    <main class="flex-1 overflow-y-auto px-4 py-2 pb-28">
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Bottom navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-20 pb-safe"
+         style="background:white; border-radius:24px 24px 0 0; box-shadow:0 -2px 16px rgba(0,0,0,0.08);">
+        <div class="grid grid-cols-4 h-16 px-2">
+
+            <!-- Skaner -->
+            {% with active=request.resolver_match.url_name %}
+            <a href="{% url 'main:shop_home' %}"
+               class="nav-item flex flex-col items-center justify-center space-y-0.5
+                      {% if active == 'shop_home' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                <span class="{% if active == 'shop_home' %}nav-active-icon{% endif %} flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M4 6h2v2H4zM4 4h4v4H4zM16 4h4v4h-4zM16 6h2v2h-2zM4 16h2v2H4zM4 14h4v4H4z"/>
+                        <rect x="10" y="10" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14 10h2v2M20 14v2h-2M14 20h2v2M20 20h-2v-2"/>
+                    </svg>
+                </span>
+                <span class="text-xs font-medium leading-none">Skaner</span>
+            </a>
+
+            <!-- Tarix -->
+            <a href="{% url 'main:warranty_history' %}"
+               class="nav-item flex flex-col items-center justify-center space-y-0.5
+                      {% if active == 'warranty_history' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                <span class="{% if active == 'warranty_history' %}nav-active-icon{% endif %} flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </span>
+                <span class="text-xs font-medium leading-none">Tarix</span>
+            </a>
+
+            <!-- Ombor -->
+            <a href="{% url 'main:warehouse_list' %}"
+               class="nav-item flex flex-col items-center justify-center space-y-0.5
+                      {% if active == 'warehouse_list' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                <span class="{% if active == 'warehouse_list' %}nav-active-icon{% endif %} flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                </span>
+                <span class="text-xs font-medium leading-none">Ombor</span>
+            </a>
+
+            <!-- Profil -->
+            <a href="{% url 'main:shop_profile' %}"
+               class="nav-item flex flex-col items-center justify-center space-y-0.5
+                      {% if active == 'shop_profile' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                <span class="{% if active == 'shop_profile' %}nav-active-icon{% endif %} flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </span>
+                <span class="text-xs font-medium leading-none">Profil</span>
+            </a>
+            {% endwith %}
+
+        </div>
+    </nav>
+
 </div>
 </body>
 </html>
-

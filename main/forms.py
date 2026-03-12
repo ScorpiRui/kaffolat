@@ -4,37 +4,60 @@ from django.contrib.auth.forms import UsernameField
 
 from .models import QrItem, Shop
 
+INPUT = (
+    "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm "
+    "focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+)
 
-class QrItemForm(forms.ModelForm):
+
+class QrItemAddForm(forms.ModelForm):
+    """Step 1 — New QR: add product to warehouse.
+    Fields: product type, name, description, buy price, purchase date."""
+
     class Meta:
         model = QrItem
-        fields = [
-            "product_type",
-            "custom_name",
-            "custom_description",
-            "buy_price",
-            "purchase_date",
-            "client_phone",
-            "warranty_until_date",
-            "warranty_mileage",
-            "mileage_unit",
-        ]
+        fields = ["product_type", "custom_name", "custom_description", "buy_price", "purchase_date"]
         widgets = {
-            "product_type": forms.Select(attrs={"class": "w-full border rounded px-3 py-2 text-sm"}),
-            "custom_name": forms.TextInput(attrs={"class": "w-full border rounded px-3 py-2 text-sm"}),
-            "custom_description": forms.Textarea(
-                attrs={"class": "w-full border rounded px-3 py-2 text-sm", "rows": 3}
-            ),
-            "buy_price": forms.NumberInput(attrs={"class": "w-full border rounded px-3 py-2 text-sm"}),
-            "purchase_date": forms.DateInput(
-                attrs={"type": "date", "class": "w-full border rounded px-3 py-2 text-sm"}
-            ),
-            "client_phone": forms.TextInput(attrs={"class": "w-full border rounded px-3 py-2 text-sm"}),
-            "warranty_until_date": forms.DateInput(
-                attrs={"type": "date", "class": "w-full border rounded px-3 py-2 text-sm"}
-            ),
-            "warranty_mileage": forms.NumberInput(attrs={"class": "w-full border rounded px-3 py-2 text-sm"}),
-            "mileage_unit": forms.TextInput(attrs={"class": "w-full border rounded px-3 py-2 text-sm"}),
+            "product_type": forms.Select(attrs={"class": INPUT}),
+            "custom_name": forms.TextInput(attrs={"class": INPUT, "placeholder": "Ixtiyoriy nom"}),
+            "custom_description": forms.Textarea(attrs={"class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)"}),
+            "buy_price": forms.NumberInput(attrs={"class": INPUT, "placeholder": "0.00"}),
+            "purchase_date": forms.DateInput(attrs={"type": "date", "class": INPUT}),
+        }
+
+    def __init__(self, *args, shop=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if shop is not None:
+            self.fields["product_type"].queryset = shop.product_types.filter(is_active=True)
+        else:
+            self.fields["product_type"].queryset = QrItem.objects.none()
+        self.fields["product_type"].required = False
+        self.fields["product_type"].empty_label = "— Mahsulot tanlang (ixtiyoriy)"
+
+
+# Keep old name as alias so other imports don't break
+QrItemForm = QrItemAddForm
+
+
+class QrItemSellForm(forms.ModelForm):
+    """Step 2 — Sell: add client phone + warranty to an existing warehouse item."""
+
+    class Meta:
+        model = QrItem
+        fields = ["client_phone", "warranty_until_date", "warranty_mileage", "mileage_unit"]
+        widgets = {
+            "client_phone": forms.TextInput(attrs={
+                "class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel",
+            }),
+            "warranty_until_date": forms.DateInput(attrs={
+                "type": "date", "class": INPUT,
+            }),
+            "warranty_mileage": forms.NumberInput(attrs={
+                "class": INPUT, "placeholder": "0",
+            }),
+            "mileage_unit": forms.TextInput(attrs={
+                "class": INPUT, "placeholder": "km",
+            }),
         }
 
 
@@ -47,7 +70,7 @@ class ShopRegistrationForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "autocomplete": "username",
-                "class": "w-full border rounded px-3 py-2 text-sm",
+                "class": INPUT,
                 "placeholder": "Login kiriting",
             }
         ),
@@ -58,7 +81,7 @@ class ShopRegistrationForm(forms.ModelForm):
         widget=forms.PasswordInput(
             attrs={
                 "autocomplete": "new-password",
-                "class": "w-full border rounded px-3 py-2 text-sm",
+                "class": INPUT,
                 "placeholder": "Parol kiriting",
             }
         ),
@@ -69,7 +92,7 @@ class ShopRegistrationForm(forms.ModelForm):
         widget=forms.PasswordInput(
             attrs={
                 "autocomplete": "new-password",
-                "class": "w-full border rounded px-3 py-2 text-sm",
+                "class": INPUT,
                 "placeholder": "Parolni qayta kiriting",
             }
         ),
@@ -81,7 +104,7 @@ class ShopRegistrationForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(
                 attrs={
-                    "class": "w-full border rounded px-3 py-2 text-sm",
+                    "class": INPUT,
                     "placeholder": "Masalan: AutoServis 1",
                 }
             ),
@@ -112,3 +135,25 @@ class ShopRegistrationForm(forms.ModelForm):
         return shop
 
 
+LANGUAGE_CHOICES = [
+    ("uz", "O'zbek"),
+    ("ru", "Русский"),
+    ("en", "English"),
+]
+
+
+class ShopProfileForm(forms.ModelForm):
+    language = forms.ChoiceField(
+        choices=LANGUAGE_CHOICES,
+        label="Til",
+        widget=forms.Select(attrs={"class": INPUT}),
+    )
+
+    class Meta:
+        model = Shop
+        fields = ["name", "phone", "location", "logo", "language", "warranty_mileage_enabled"]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": INPUT, "placeholder": "Do'kon nomi"}),
+            "phone": forms.TextInput(attrs={"class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel"}),
+            "location": forms.TextInput(attrs={"class": INPUT, "placeholder": "Shahar, ko'cha, uy raqami"}),
+        }

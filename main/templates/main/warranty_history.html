@@ -1,0 +1,67 @@
+{% extends "main/base.html" %}
+
+{% block title %}Tarix{% endblock %}
+
+{% block content %}
+<div class="space-y-3">
+
+    <h1 class="text-lg font-bold text-gray-900 px-1">Sotilgan mahsulotlar</h1>
+
+    {% if items %}
+        {% for item in items %}
+        <a href="{% url 'main:item_detail' item.pk %}"
+           class="block bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
+
+            <div class="flex items-center justify-between mb-1">
+                <p class="text-sm font-semibold text-gray-900 truncate mr-2">{{ item.display_name }}</p>
+
+                {% if item.warranty_until_date or item.warranty_mileage %}
+                    <span class="text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium
+                        {% if item.warranty_is_valid %}bg-green-100 text-green-700
+                        {% else %}bg-red-100 text-red-600{% endif %}">
+                        {% if item.warranty_is_valid %}Kafolat amal qiladi{% else %}Muddati o'tgan{% endif %}
+                    </span>
+                {% else %}
+                    <span class="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">
+                        Kafolatsiz
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
+                <span>
+                    {% if item.client_phone %}
+                        📞 {{ item.client_phone }}
+                    {% endif %}
+                </span>
+                <span>{{ item.purchase_date }}</span>
+            </div>
+
+            {% if item.warranty_until_date %}
+            <div class="mt-2 text-xs text-gray-500">
+                Kafolat: {{ item.warranty_until_date }} gacha
+            </div>
+            {% endif %}
+            {% if item.warranty_mileage %}
+            <div class="mt-1 text-xs text-gray-500">
+                Yurish: {{ item.warranty_mileage }} {{ item.mileage_unit }}
+            </div>
+            {% endif %}
+
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="bg-white rounded-2xl p-10 text-center shadow-sm">
+            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="text-sm font-medium text-gray-400">Hozircha sotilgan mahsulot yo'q</p>
+            <p class="text-xs text-gray-300 mt-1">Mijoz telefoni kiritilgan mahsulotlar bu yerda ko'rinadi</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -2,51 +2,151 @@
 <html lang="uz">
 <head>
     <meta charset="utf-8">
-    <title>{{ item.display_name }} - Kafolat</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ item.display_name }} – Kafolat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { font-size: 16px; }
+    </style>
 </head>
-<body class="bg-gray-100">
-<main class="max-w-xl mx-auto px-4 py-8">
-    <div class="bg-white shadow rounded-lg p-6 space-y-4">
-        <header class="flex items-center space-x-3">
-            {% if shop.logo %}
-                <img src="{{ shop.logo.url }}" alt="{{ shop.name }}" class="w-10 h-10 rounded-full object-cover">
-            {% endif %}
-            <div>
-                <h1 class="text-lg font-semibold">{{ shop.name }}</h1>
-            </div>
-        </header>
+<body class="bg-gray-50 max-w-lg mx-auto min-h-screen">
+<main class="px-4 py-6 space-y-4 pb-10">
 
-        <section class="border-t pt-4 space-y-2 text-sm">
-            <div class="font-semibold text-base">{{ item.display_name }}</div>
-            {% if item.custom_description %}
-                <p class="text-gray-700 whitespace-pre-line">{{ item.custom_description }}</p>
-            {% endif %}
-            <div class="text-gray-600">
-                Xarid qilingan sana: {{ item.purchase_date }}
-            </div>
-            {% if item.buy_price %}
-                <div class="text-gray-600">
-                    Narx: {{ item.buy_price }}
+    <!-- Shop card -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <div class="flex items-center space-x-3">
+            {% if shop.logo %}
+                <img src="{{ shop.logo.url }}" alt="{{ shop.name }}"
+                     class="w-14 h-14 rounded-2xl object-cover flex-shrink-0 shadow-sm">
+            {% else %}
+                <div class="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center
+                            text-white font-bold text-2xl flex-shrink-0">
+                    {{ shop.name|slice:":1"|upper }}
                 </div>
             {% endif %}
-        </section>
+            <div class="min-w-0">
+                <h1 class="text-base font-bold text-gray-900 truncate">{{ shop.name }}</h1>
+                {% if shop.phone %}
+                <a href="tel:{{ shop.phone }}"
+                   class="flex items-center space-x-1 text-blue-600 text-sm mt-0.5">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor"
+                         stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0
+                                 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13
+                                 -2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2
+                                 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                    </svg>
+                    <span>{{ shop.phone }}</span>
+                </a>
+                {% endif %}
+                {% if shop.location %}
+                <p class="flex items-center space-x-1 text-gray-400 text-xs mt-0.5">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor"
+                         stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244
+                                 -4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span>{{ shop.location }}</span>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
-        <section class="border-t pt-4 text-sm space-y-1">
-            <div class="font-semibold">Kafolat ma'lumotlari</div>
+    <!-- Product card -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <div class="flex items-start space-x-3 mb-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center
+                        flex-shrink-0 text-indigo-600 font-bold text-lg">
+                {{ item.display_name|slice:":1"|upper }}
+            </div>
+            <div class="min-w-0">
+                <h2 class="text-base font-bold text-gray-900">{{ item.display_name }}</h2>
+                {% if item.custom_description %}
+                <p class="text-sm text-gray-500 mt-1 whitespace-pre-line">{{ item.custom_description }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="divide-y divide-gray-100">
+            <div class="flex justify-between py-3 text-sm">
+                <span class="text-gray-400">Xarid qilingan sana</span>
+                <span class="font-medium text-gray-800">{{ item.purchase_date }}</span>
+            </div>
+            {% if item.buy_price %}
+            <div class="flex justify-between py-3 text-sm">
+                <span class="text-gray-400">Narxi</span>
+                <span class="font-medium text-gray-800">{{ item.buy_price }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Warranty card -->
+    <div class="rounded-2xl p-5 shadow-sm
+        {% if item.warranty_until_date or item.warranty_mileage %}
+            {% if item.warranty_is_valid %}bg-green-50 border border-green-200
+            {% else %}bg-red-50 border border-red-200{% endif %}
+        {% else %}bg-white{% endif %}">
+
+        <div class="flex items-center space-x-2 mb-3">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center
+                {% if item.warranty_until_date or item.warranty_mileage %}
+                    {% if item.warranty_is_valid %}bg-green-200{% else %}bg-red-200{% endif %}
+                {% else %}bg-gray-100{% endif %}">
+                <svg class="w-4 h-4
+                    {% if item.warranty_until_date or item.warranty_mileage %}
+                        {% if item.warranty_is_valid %}text-green-700{% else %}text-red-600{% endif %}
+                    {% else %}text-gray-400{% endif %}"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944
+                             a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9
+                             c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03
+                             9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+            </div>
+            <span class="text-sm font-bold text-gray-800">Kafolat</span>
+            {% if item.warranty_until_date or item.warranty_mileage %}
+            <span class="ml-auto text-xs font-semibold px-2.5 py-1 rounded-full
+                {% if item.warranty_is_valid %}bg-green-600 text-white
+                {% else %}bg-red-500 text-white{% endif %}">
+                {% if item.warranty_is_valid %}✓ Amal qilmoqda{% else %}✗ Muddati o'tgan{% endif %}
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="divide-y divide-gray-200">
             {% if item.warranty_until_date %}
-                <div>Tugash sanasi: {{ item.warranty_until_date }}</div>
+            <div class="flex justify-between py-3 text-sm">
+                <span class="text-gray-500">Tugash sanasi</span>
+                <span class="font-semibold
+                    {% if item.warranty_is_valid %}text-green-700{% else %}text-red-600{% endif %}">
+                    {{ item.warranty_until_date }}
+                </span>
+            </div>
             {% endif %}
             {% if item.warranty_mileage %}
-                <div>Yurish cheklovi: {{ item.warranty_mileage }} {{ item.mileage_unit }}</div>
+            <div class="flex justify-between py-3 text-sm">
+                <span class="text-gray-500">Yurish cheklovi</span>
+                <span class="font-semibold text-gray-800">
+                    {{ item.warranty_mileage }} {{ item.mileage_unit }}
+                </span>
+            </div>
             {% endif %}
             {% if not item.warranty_until_date and not item.warranty_mileage %}
-                <div>Kafolat ma'lumoti kiritilmagan.</div>
+            <p class="py-3 text-sm text-gray-400">Kafolat ma'lumoti ko'rsatilmagan</p>
             {% endif %}
-        </section>
+        </div>
     </div>
+
 </main>
 </body>
 </html>
-
