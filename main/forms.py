@@ -40,14 +40,21 @@ QrItemForm = QrItemAddForm
 
 
 class QrItemSellForm(forms.ModelForm):
-    """Step 2 — Sell: add client phone + warranty to an existing warehouse item."""
+    """Step 2 — Sell: add client phone, sold price + warranty to an existing warehouse item."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["sold_price"].required = True
 
     class Meta:
         model = QrItem
-        fields = ["client_phone", "warranty_until_date", "warranty_mileage", "mileage_unit"]
+        fields = ["client_phone", "sold_price", "warranty_until_date", "warranty_mileage", "mileage_unit"]
         widgets = {
             "client_phone": forms.TextInput(attrs={
                 "class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel",
+            }),
+            "sold_price": forms.NumberInput(attrs={
+                "class": INPUT, "placeholder": "0.00", "step": "0.01",
             }),
             "warranty_until_date": forms.DateInput(attrs={
                 "type": "date", "class": INPUT,

@@ -43,9 +43,15 @@
             </div>
             {% endif %}
             <div class="flex justify-between py-3 text-sm">
-                <span class="text-gray-400">Narxi</span>
+                <span class="text-gray-400">Xarid narxi</span>
                 <span class="font-medium text-gray-800">{{ item.buy_price|default:"—" }}</span>
             </div>
+            {% if item.sold_price %}
+            <div class="flex justify-between py-3 text-sm">
+                <span class="text-gray-400">Sotuv narxi</span>
+                <span class="font-medium text-green-600">{{ item.sold_price|floatformat:2 }}</span>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -94,6 +100,23 @@
         </div>
     </div>
 
+    <!-- Revert button (shown only when sold) -->
+    {% if item.client_phone %}
+    <form method="post" action="{% url 'main:revert_sell' item.pk %}" class="mb-4"
+          onsubmit="return confirm('Mahsulotni omborga qaytarishni xohlaysizmi?');">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full bg-red-600 text-white font-semibold py-3.5 rounded-2xl
+                       shadow-sm active:bg-red-700 flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>Sotuvni bekor qilish</span>
+        </button>
+    </form>
+    {% endif %}
+
     <!-- Sell button (shown only when not yet sold) -->
     {% if not item.client_phone %}
     <button id="sellBtn"
@@ -121,13 +144,15 @@
             <div class="flex items-start space-x-3">
                 <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0
                     {% if record.action == 'created' %}bg-green-400
+                    {% elif record.action == 'reverted' %}bg-red-400
                     {% elif record.action == 'updated' %}bg-yellow-400
                     {% else %}bg-blue-400{% endif %}"></div>
                 <div>
                     <p class="text-xs font-medium text-gray-700">
                         {% if record.action == 'created' %}Omborga qo'shildi
-                        {% elif record.action == 'updated' %}Sotildi / Yangilandi
-                        {% else %}Kafolat tekshirildi{% endif %}
+                        {% elif record.action == 'reverted' %}Sotuv bekor qilindi
+                        {% elif record.action == 'updated' %}Sotildi 
+                        {% else %}Yangilandi{% endif %}
                     </p>
                     {% if record.note %}
                         <p class="text-xs text-gray-400 italic">{{ record.note }}</p>
@@ -166,6 +191,17 @@
 
         <form method="post" action="{% url 'main:sell_item' item.pk %}" class="space-y-4" novalidate>
             {% csrf_token %}
+
+            <!-- Sold price -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Sotuv narxi
+                </label>
+                <input type="number" name="sold_price" required step="0.01" min="0"
+                       placeholder="0.00"
+                       class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm
+                              focus:outline-none focus:ring-2 focus:ring-green-400">
+            </div>
 
             <!-- Client phone -->
             <div>

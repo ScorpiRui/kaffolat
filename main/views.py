@@ -66,7 +66,12 @@ def qr_handler(request, qr_id: str):
 @login_required
 def warehouse_list(request):
     shop = _get_shop_for_request(request)
-    items = QrItem.objects.filter(shop=shop).select_related("product_type")
+    items = (
+        QrItem.objects
+        .filter(shop=shop)
+        .filter(client_phone="")
+        .select_related("product_type")
+    )
     return render(request, "main/warehouse_list.html", {"shop": shop, "items": items})
 
 
@@ -94,6 +99,27 @@ def sell_item(request, pk: int):
                 action=WarehouseRecord.ACTION_UPDATED,
                 note="Mahsulot sotildi, kafolat ma'lumotlari kiritildi",
             )
+    return redirect("main:item_detail", pk=pk)
+
+
+# ── Revert sell (unsell — move back to warehouse) ──────────────────────────────
+
+@login_required
+def revert_sell(request, pk: int):
+    shop = _get_shop_for_request(request)
+    item = get_object_or_404(QrItem, pk=pk, shop=shop)
+    if request.method == "POST":
+        item.client_phone = ""
+        item.sold_price = None
+        item.warranty_until_date = None
+        item.warranty_mileage = None
+        item.mileage_unit = ""
+        item.save()
+        WarehouseRecord.objects.create(
+            item=item,
+            action=WarehouseRecord.ACTION_REVERTED,
+            note="Sotuv bekor qilindi, mahsulot omborga qaytarildi",
+        )
     return redirect("main:item_detail", pk=pk)
 
 

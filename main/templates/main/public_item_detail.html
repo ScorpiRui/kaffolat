@@ -80,10 +80,10 @@
                 <span class="text-gray-400">Xarid qilingan sana</span>
                 <span class="font-medium text-gray-800">{{ item.purchase_date }}</span>
             </div>
-            {% if item.buy_price %}
+            {% if item.sold_price %}
             <div class="flex justify-between py-3 text-sm">
                 <span class="text-gray-400">Narxi</span>
-                <span class="font-medium text-gray-800">{{ item.buy_price }}</span>
+                <span class="font-medium text-gray-800">{{ item.sold_price|floatformat:2 }}</span>
             </div>
             {% endif %}
         </div>
