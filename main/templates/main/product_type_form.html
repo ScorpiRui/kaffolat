@@ -1,0 +1,67 @@
+{% extends "main/base.html" %}
+
+{% block title %}{% if is_edit %}Tahrirlash{% else %}Yangi tur{% endif %}{% endblock %}
+
+{% block header_right %}
+<a href="{% url 'main:product_type_list' %}"
+   class="text-xs text-gray-400 border border-gray-200 rounded-full px-3 py-1 active:bg-gray-100">
+    ← Orqaga
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+
+    <h1 class="text-lg font-bold text-gray-900 px-1">
+        {% if is_edit %}Mahsulot turini tahrirlash{% else %}Yangi mahsulot turi{% endif %}
+    </h1>
+
+    {% if form.non_field_errors %}
+    <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Nomi
+                </label>
+                {{ form.name }}
+                {% for e in form.name.errors %}
+                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Standart tavsif (ixtiyoriy)
+                </label>
+                {{ form.default_description }}
+                {% for e in form.default_description.errors %}
+                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
+
+            <div class="flex items-center space-x-2">
+                {{ form.is_active }}
+                <label for="{{ form.is_active.id_for_label }}" class="text-sm font-medium text-gray-700">
+                    Faol
+                </label>
+            </div>
+            {% for e in form.is_active.errors %}
+                <p class="text-xs text-red-500">{{ e }}</p>
+            {% endfor %}
+
+            <button type="submit"
+                    class="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-xl active:bg-blue-700 mt-2">
+                Saqlash
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

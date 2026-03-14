@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import QrItemAddForm, QrItemSellForm, ShopProfileForm, ShopRegistrationForm
-from .models import QrItem, Shop, WarehouseRecord
+from .forms import ProductTypeForm, QrItemAddForm, QrItemSellForm, ShopProfileForm, ShopRegistrationForm
+from .models import ProductType, QrItem, Shop, WarehouseRecord
 
 
 def _get_shop_for_request(request) -> Shop:
@@ -136,6 +136,69 @@ def warranty_history(request):
         .select_related("product_type")
     )
     return render(request, "main/warranty_history.html", {"shop": shop, "items": items})
+
+
+# ── Product types CRUD ────────────────────────────────────────────────────────
+
+@login_required
+def product_type_list(request):
+    shop = _get_shop_for_request(request)
+    product_types = shop.product_types.all().order_by("name")
+    return render(request, "main/product_type_list.html", {
+        "shop": shop,
+        "product_types": product_types,
+    })
+
+
+@login_required
+def product_type_create(request):
+    shop = _get_shop_for_request(request)
+    if request.method == "POST":
+        form = ProductTypeForm(request.POST)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.shop = shop
+            obj.save()
+            messages.success(request, "Mahsulot turi qo'shildi.")
+            return redirect("main:product_type_list")
+    else:
+        form = ProductTypeForm()
+    return render(request, "main/product_type_form.html", {
+        "shop": shop,
+        "form": form,
+        "is_edit": False,
+    })
+
+
+@login_required
+def product_type_edit(request, pk: int):
+    shop = _get_shop_for_request(request)
+    obj = get_object_or_404(ProductType, pk=pk, shop=shop)
+    if request.method == "POST":
+        form = ProductTypeForm(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "O'zgarishlar saqlandi.")
+            return redirect("main:product_type_list")
+    else:
+        form = ProductTypeForm(instance=obj)
+    return render(request, "main/product_type_form.html", {
+        "shop": shop,
+        "form": form,
+        "product_type": obj,
+        "is_edit": True,
+    })
+
+
+@login_required
+def product_type_delete(request, pk: int):
+    shop = _get_shop_for_request(request)
+    obj = get_object_or_404(ProductType, pk=pk, shop=shop)
+    if request.method == "POST":
+        obj.delete()
+        messages.success(request, "Mahsulot turi o'chirildi.")
+        return redirect("main:product_type_list")
+    return redirect("main:product_type_list")
 
 
 # ── Profile / Settings ─────────────────────────────────────────────────────────

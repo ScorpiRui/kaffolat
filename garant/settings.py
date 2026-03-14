@@ -25,8 +25,19 @@ SECRET_KEY = "django-insecure-_b&g+2l6e9fct0fyvnzug4n5crbrr7s+-h2j8(84(&ghntgv1b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['shanta-shaglike-ceaselessly.ngrok-free.dev', 'localhost', '127.0.0.1']
 
+# Required for Telegram Mini App WebView (cross-site iframe context)
+CSRF_TRUSTED_ORIGINS = [
+    'https://shanta-shaglike-ceaselessly.ngrok-free.dev',
+    'https://web.telegram.org',
+    'https://telegram.org',
+    'https://t.me',
+]
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
 
 # Application definition
 

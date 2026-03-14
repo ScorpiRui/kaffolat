@@ -7,6 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         input { font-size: 16px !important; }
@@ -73,6 +74,21 @@
 
     </div>
 
+    <script>
+    (function() {
+        if (window.Telegram?.WebApp) {
+            var tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            if (typeof tg.disableVerticalSwipes === 'function') {
+                tg.disableVerticalSwipes();
+            }
+            if (typeof tg.requestFullscreen === 'function') {
+                tg.requestFullscreen();
+            }
+        }
+    })();
+    </script>
 </body>
 </html>
 

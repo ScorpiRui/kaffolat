@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         input, select, textarea { font-size: 16px !important; }
@@ -26,8 +27,8 @@
 
 <div class="min-h-screen flex flex-col">
 
-    <!-- Floating header card -->
-    <div class="px-4 pt-4 pb-2 sticky top-0 z-20" style="background:#EEEDF4;">
+    <!-- Floating header card (positioned below Telegram's top bar via safe area) -->
+    <div id="topBar" class="px-4 pt-4 pb-2 sticky z-20" style="top:0; background:#EEEDF4;">
         <header class="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3 min-w-0">
                 {% if shop and shop.logo %}
@@ -60,7 +61,7 @@
     <!-- Bottom navigation -->
     <nav class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-20 pb-safe"
          style="background:white; border-radius:24px 24px 0 0; box-shadow:0 -2px 16px rgba(0,0,0,0.08);">
-        <div class="grid grid-cols-4 h-16 px-2">
+        <div class="grid grid-cols-5 h-16 px-1">
 
             <!-- Skaner -->
             {% with active=request.resolver_match.url_name %}
@@ -105,6 +106,19 @@
                 <span class="text-xs font-medium leading-none">Ombor</span>
             </a>
 
+            <!-- Mahsulot turlari -->
+            <a href="{% url 'main:product_type_list' %}"
+               class="nav-item flex flex-col items-center justify-center space-y-0.5
+                      {% if active == 'product_type_list' or active == 'product_type_create' or active == 'product_type_edit' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                <span class="{% if active == 'product_type_list' or active == 'product_type_create' or active == 'product_type_edit' %}nav-active-icon{% endif %} flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7a2 2 0 010-2.828l7-7A2 2 0 0112 3h5"/>
+                    </svg>
+                </span>
+                <span class="text-xs font-medium leading-none">Turlar</span>
+            </a>
+
             <!-- Profil -->
             <a href="{% url 'main:shop_profile' %}"
                class="nav-item flex flex-col items-center justify-center space-y-0.5
@@ -123,5 +137,57 @@
     </nav>
 
 </div>
+
+<script>
+(function() {
+    // Date input mask: auto-fill slashes as DD/MM/YYYY
+    function initDateMasks() {
+        document.querySelectorAll('.date-input-mask').forEach(function(inp) {
+            if (inp.dataset.dateMaskInit) return;
+            inp.dataset.dateMaskInit = '1';
+            inp.addEventListener('input', function() {
+                var v = this.value.replace(/\D/g, '');
+                if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+                if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5,9);
+                this.value = v;
+            });
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDateMasks);
+    } else {
+        initDateMasks();
+    }
+})();
+</script>
+<script>
+(function() {
+    var tg = window.Telegram?.WebApp;
+    var topBar = document.getElementById('topBar');
+
+    function applyTopBarSafeArea() {
+        if (!topBar || !tg) return;
+        var safeTop = (tg.safeAreaInset?.top || 0);
+        var contentTop = (tg.contentSafeAreaInset?.top || 0);
+        var total = safeTop + contentTop;
+        topBar.style.paddingTop = (16 + total) + 'px';
+        topBar.style.top = '0';
+    }
+
+    if (tg) {
+        tg.ready();
+        tg.expand();
+        if (typeof tg.disableVerticalSwipes === 'function') {
+            tg.disableVerticalSwipes();
+        }
+        if (typeof tg.requestFullscreen === 'function') {
+            tg.requestFullscreen();
+        }
+        applyTopBarSafeArea();
+        tg.onEvent('contentSafeAreaChanged', applyTopBarSafeArea);
+        tg.onEvent('safeAreaChanged', applyTopBarSafeArea);
+    }
+})();
+</script>
 </body>
 </html>
