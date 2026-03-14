@@ -42,7 +42,7 @@
     </div>
 
     <!-- Qo'lda kiriting -->
-    <div class="mt-auto pt-10 pb-4 w-full px-4">
+    <div class="mt-auto pt-10 pb-2 w-full px-4">
         <button id="manualBtn"
                 class="bg-white text-blue-600 font-semibold rounded-full px-6 py-2.5
                        text-sm shadow-sm border border-gray-200 active:bg-gray-50">
@@ -51,18 +51,18 @@
     </div>
 
     <!-- Manual input panel -->
-    <div id="manualPanel" class="hidden w-full px-4 pb-4">
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-            <form id="qrForm" class="flex space-x-2">
-                <input id="qrInput" type="text" placeholder="QR-00123" required
-                       class="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-gray-900
-                              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button type="submit"
-                        class="bg-blue-600 text-white px-5 rounded-xl font-bold active:bg-blue-700 flex-shrink-0">
-                    →
-                </button>
-            </form>
-        </div>
+    <div id="manualPanel" class="hidden w-full px-4 pb-6">
+        <form id="qrForm" class="flex items-stretch space-x-2">
+            <input id="qrInput" type="text" placeholder="QR-00123" required
+                   class="flex-1 min-w-0 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900
+                          bg-white shadow-sm placeholder-gray-400
+                          focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit"
+                    class="bg-blue-600 text-white w-14 rounded-2xl font-bold text-xl
+                           shadow-sm active:bg-blue-700 flex-shrink-0 flex items-center justify-center">
+                →
+            </button>
+        </form>
     </div>
 </div>
 

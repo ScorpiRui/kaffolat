@@ -40,8 +40,9 @@
     <div class="bg-white rounded-2xl p-5 shadow-sm">
         <h2 class="text-sm font-semibold text-gray-700 mb-4">Ma'lumotlarni tahrirlash</h2>
 
-        <form method="post" enctype="multipart/form-data" class="space-y-4" novalidate>
+        <form method="post" action="" enctype="multipart/form-data" class="space-y-4" novalidate>
             {% csrf_token %}
+            {% for field in form.hidden_fields %}{{ field }}{% endfor %}
 
             <!-- Do'kon nomi -->
             <div>
@@ -76,46 +77,51 @@
                 {% endfor %}
             </div>
 
-
             <!-- Mileage warranty toggle -->
             <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
                 <div>
                     <p class="text-sm font-semibold text-gray-800">Yurish kafolati</p>
                     <p class="text-xs text-gray-400 mt-0.5">Sotish formasida km/yurish maydonini ko'rsatish</p>
                 </div>
-                <label class="flex-shrink-0 ml-4 cursor-pointer" style="position:relative;display:inline-block;width:48px;height:26px;">
-                    <input type="checkbox" name="warranty_mileage_enabled"
-                           id="mileageToggle"
-                           {% if shop.warranty_mileage_enabled %}checked{% endif %}
-                           style="opacity:0;width:0;height:0;position:absolute;">
+                <label for="id_warranty_mileage_enabled" class="flex-shrink-0 ml-4 cursor-pointer"
+                       style="position:relative;display:inline-block;width:48px;height:26px;">
+                    {{ form.warranty_mileage_enabled }}
                     <span id="toggleTrack"
                           style="position:absolute;inset:0;border-radius:26px;
-                                 background:{% if shop.warranty_mileage_enabled %}#2563EB{% else %}#D1D5DB{% endif %};
-                                 transition:background 0.2s;">
+                                 background:{% if form.warranty_mileage_enabled.value %}#2563EB{% else %}#D1D5DB{% endif %};
+                                 transition:background 0.2s;pointer-events:none;">
                     </span>
                     <span id="toggleThumb"
                           style="position:absolute;top:3px;
-                                 left:{% if shop.warranty_mileage_enabled %}25px{% else %}3px{% endif %};
+                                 left:{% if form.warranty_mileage_enabled.value %}25px{% else %}3px{% endif %};
                                  width:20px;height:20px;border-radius:50%;background:#fff;
                                  box-shadow:0 1px 4px rgba(0,0,0,0.2);
-                                 transition:left 0.2s;">
+                                 transition:left 0.2s;pointer-events:none;">
                     </span>
                 </label>
             </div>
             <script>
             (function(){
-                const cb    = document.getElementById('mileageToggle');
+                const cb = document.getElementById('id_warranty_mileage_enabled');
                 const track = document.getElementById('toggleTrack');
                 const thumb = document.getElementById('toggleThumb');
-                cb.addEventListener('change', function(){
-                    if(cb.checked){
-                        track.style.background = '#2563EB';
-                        thumb.style.left = '25px';
-                    } else {
-                        track.style.background = '#D1D5DB';
-                        thumb.style.left = '3px';
-                    }
-                });
+                if (cb) {
+                    cb.style.position = 'absolute';
+                    cb.style.opacity = '0';
+                    cb.style.width = '48px';
+                    cb.style.height = '26px';
+                    cb.style.margin = '0';
+                    cb.style.cursor = 'pointer';
+                    cb.addEventListener('change', function(){
+                        if(cb.checked){
+                            track.style.background = '#2563EB';
+                            thumb.style.left = '25px';
+                        } else {
+                            track.style.background = '#D1D5DB';
+                            thumb.style.left = '3px';
+                        }
+                    });
+                }
             })();
             </script>
 
@@ -153,9 +159,7 @@
                     <p class="text-sm font-semibold text-blue-600">Rasm tanlash</p>
                     <p class="text-xs text-gray-400 mt-0.5">JPG, PNG · Max 5 MB</p>
 
-                    <!-- Hidden real input -->
-                    <input id="id_logo" name="logo" type="file" accept="image/*"
-                           class="hidden">
+                    {{ form.logo }}
                 </label>
 
                 <!-- File name badge shown after selection -->

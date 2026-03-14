@@ -217,12 +217,20 @@
             <!-- Warranty date -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Kafolat tugash sanasi
+                    Kafolat muddati
                 </label>
-                <input type="text" name="warranty_until_date"
-                       placeholder="__/__/____" maxlength="10"
-                       class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm date-input-mask
-                              focus:outline-none focus:ring-2 focus:ring-green-400">
+                <input type="hidden" name="warranty_until_date" id="warrantyDateInput">
+                <div class="flex flex-wrap gap-2">
+                    {% for label, days in warranty_presets %}
+                    <button type="button"
+                            data-days="{{ days }}"
+                            onclick="selectWarrantyPreset(this, 'warrantyDateInput', 'warrantyPresetLabel')"
+                            class="warranty-preset px-3 py-1.5 rounded-full border border-gray-200 text-xs font-medium text-gray-600 bg-white active:bg-green-50">
+                        {{ label }}
+                    </button>
+                    {% endfor %}
+                </div>
+                <p id="warrantyPresetLabel" class="text-xs text-green-600 mt-1.5 hidden"></p>
             </div>
 
             <!-- Warranty mileage — shown only if enabled in shop settings -->

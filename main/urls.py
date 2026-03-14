@@ -8,6 +8,7 @@ app_name = "main"
 urlpatterns = [
     path("", views.shop_home, name="shop_home"),
     path("qr/<str:qr_id>/", views.qr_handler, name="qr_handler"),
+    path("qr/<str:qr_id>/sell/", views.qr_quick_sell, name="qr_quick_sell"),
     path("warehouse/", views.warehouse_list, name="warehouse_list"),
     path("product-types/", views.product_type_list, name="product_type_list"),
     path("product-types/create/", views.product_type_create, name="product_type_create"),

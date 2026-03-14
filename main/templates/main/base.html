@@ -28,8 +28,9 @@
 <div class="min-h-screen flex flex-col">
 
     <!-- Floating header card (positioned below Telegram's top bar via safe area) -->
-    <div id="topBar" class="px-4 pt-4 pb-2 sticky z-20" style="top:0; background:#EEEDF4;">
-        <header class="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
+    <div id="topBar" class="pt-4 pb-2 sticky z-20" style="top:0; background:#EEEDF4; padding-left:20px; padding-right:20px;">
+        <header class="bg-white shadow-sm flex items-center justify-between"
+                style="width:100%; max-width:390px; height:70px; border-radius:113px; padding:0 16px; opacity:1;">
             <div class="flex items-center space-x-3 min-w-0">
                 {% if shop and shop.logo %}
                     <img src="{{ shop.logo.url }}" alt="{{ shop.name }}"
@@ -53,23 +54,23 @@
         </header>
     </div>
 
-    <!-- Page content -->
-    <main class="flex-1 overflow-y-auto px-4 py-2 pb-28">
+    <!-- Page content (extra bottom padding to clear the floating navbar: 70px + 12px gap + 24px buffer) -->
+    <main class="flex-1 overflow-y-auto px-4 py-2" style="padding-bottom: 110px;">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Bottom navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-20 pb-safe"
-         style="background:white; border-radius:24px 24px 0 0; box-shadow:0 -2px 16px rgba(0,0,0,0.08);">
-        <div class="grid grid-cols-5 h-16 px-1">
+    <nav class="fixed z-20 max-w-lg mx-auto"
+         style="bottom:12px; left:20px; right:20px; height:70px; border-radius:68px; background:white; box-shadow:0 4px 24px rgba(0,0,0,0.10);">
+        <div class="flex items-center justify-around h-full px-2">
 
             <!-- Skaner -->
             {% with active=request.resolver_match.url_name %}
             <a href="{% url 'main:shop_home' %}"
-               class="nav-item flex flex-col items-center justify-center space-y-0.5
+               class="nav-item flex-1 flex flex-col items-center justify-center gap-1
                       {% if active == 'shop_home' %}text-blue-600{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'shop_home' %}nav-active-icon{% endif %} flex items-center justify-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M4 6h2v2H4zM4 4h4v4H4zM16 4h4v4h-4zM16 6h2v2h-2zM4 16h2v2H4zM4 14h4v4H4z"/>
                         <rect x="10" y="10" width="4" height="4" rx="0.5" fill="currentColor" stroke="none"/>
@@ -82,10 +83,10 @@
 
             <!-- Tarix -->
             <a href="{% url 'main:warranty_history' %}"
-               class="nav-item flex flex-col items-center justify-center space-y-0.5
+               class="nav-item flex-1 flex flex-col items-center justify-center gap-1
                       {% if active == 'warranty_history' %}text-blue-600{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'warranty_history' %}nav-active-icon{% endif %} flex items-center justify-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
@@ -95,10 +96,10 @@
 
             <!-- Ombor -->
             <a href="{% url 'main:warehouse_list' %}"
-               class="nav-item flex flex-col items-center justify-center space-y-0.5
+               class="nav-item flex-1 flex flex-col items-center justify-center gap-1
                       {% if active == 'warehouse_list' %}text-blue-600{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'warehouse_list' %}nav-active-icon{% endif %} flex items-center justify-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                     </svg>
@@ -108,10 +109,10 @@
 
             <!-- Mahsulot turlari -->
             <a href="{% url 'main:product_type_list' %}"
-               class="nav-item flex flex-col items-center justify-center space-y-0.5
+               class="nav-item flex-1 flex flex-col items-center justify-center gap-1
                       {% if active == 'product_type_list' or active == 'product_type_create' or active == 'product_type_edit' %}text-blue-600{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'product_type_list' or active == 'product_type_create' or active == 'product_type_edit' %}nav-active-icon{% endif %} flex items-center justify-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7a2 2 0 010-2.828l7-7A2 2 0 0112 3h5"/>
                     </svg>
@@ -121,10 +122,10 @@
 
             <!-- Profil -->
             <a href="{% url 'main:shop_profile' %}"
-               class="nav-item flex flex-col items-center justify-center space-y-0.5
+               class="nav-item flex-1 flex flex-col items-center justify-center gap-1
                       {% if active == 'shop_profile' %}text-blue-600{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'shop_profile' %}nav-active-icon{% endif %} flex items-center justify-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
@@ -138,6 +139,28 @@
 
 </div>
 
+<script>
+// Warranty preset pill selector
+function selectWarrantyPreset(btn, inputId, labelId) {
+    var days = parseInt(btn.dataset.days, 10);
+    var today = new Date();
+    today.setDate(today.getDate() + days);
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
+    document.getElementById(inputId).value = dd + '/' + mm + '/' + yyyy;
+    // highlight selected pill
+    btn.closest('.flex').querySelectorAll('.warranty-preset').forEach(function(b) {
+        b.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+        b.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+    });
+    btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-200');
+    btn.classList.add('bg-green-500', 'text-white', 'border-green-500');
+    // show label
+    var lbl = document.getElementById(labelId);
+    if (lbl) { lbl.textContent = dd + '/' + mm + '/' + yyyy + ' gacha'; lbl.classList.remove('hidden'); }
+}
+</script>
 <script>
 (function() {
     // Date input mask: auto-fill slashes as DD/MM/YYYY

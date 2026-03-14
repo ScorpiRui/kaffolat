@@ -43,6 +43,8 @@ def qr_handler(request, qr_id: str):
             item = form.save(commit=False)
             item.shop = shop
             item.qr_id = qr_id
+            if not item.purchase_date:
+                item.purchase_date = timezone.localdate()
             item.save()
             WarehouseRecord.objects.create(
                 item=item,
@@ -53,12 +55,71 @@ def qr_handler(request, qr_id: str):
     else:
         form = QrItemAddForm(shop=shop)
 
+    warranty_presets = [
+        ("3 kun", 3),
+        ("7 kun", 7),
+        ("15 kun", 15),
+        ("1 oy", 30),
+        ("3 oy", 90),
+        ("6 oy", 180),
+        ("1 yil", 365),
+    ]
     return render(request, "main/qr_item_form.html", {
         "shop": shop,
         "qr_id": qr_id,
         "form": form,
         "is_new": True,
+        "warranty_presets": warranty_presets,
     })
+
+
+# ── Quick sell new QR (create item + sell in one step) ────────────────────────
+
+@login_required
+def qr_quick_sell(request, qr_id: str):
+    shop = _get_shop_for_request(request)
+    if request.method != "POST":
+        return redirect("main:qr_handler", qr_id=qr_id)
+
+    # Create the item first using warehouse form data
+    add_form = QrItemAddForm(request.POST, shop=shop)
+    if add_form.is_valid():
+        item = add_form.save(commit=False)
+        item.shop = shop
+        item.qr_id = qr_id
+        if not item.purchase_date:
+            item.purchase_date = timezone.localdate()
+        # Apply sell fields from POST
+        item.sold_price = request.POST.get("sold_price") or None
+        item.client_phone = request.POST.get("client_phone", "")
+        # Parse warranty date
+        from django.utils.dateparse import parse_date
+        raw_date = request.POST.get("warranty_until_date", "").strip()
+        for fmt in ["%d/%m/%Y", "%d.%m.%Y", "%Y-%m-%d"]:
+            try:
+                from datetime import datetime
+                item.warranty_until_date = datetime.strptime(raw_date, fmt).date()
+                break
+            except (ValueError, TypeError):
+                pass
+        if request.POST.get("warranty_mileage"):
+            try:
+                item.warranty_mileage = int(request.POST.get("warranty_mileage"))
+                item.mileage_unit = request.POST.get("mileage_unit", "km")
+            except (ValueError, TypeError):
+                pass
+        item.save()
+        WarehouseRecord.objects.create(
+            item=item,
+            action=WarehouseRecord.ACTION_CREATED,
+            note="Yangi mahsulot qo'shildi va sotildi",
+        )
+        WarehouseRecord.objects.create(
+            item=item,
+            action=WarehouseRecord.ACTION_UPDATED,
+            note="Mahsulot sotildi, kafolat ma'lumotlari kiritildi",
+        )
+    return redirect("main:item_detail", pk=item.pk)
 
 
 # ── Warehouse (all registered products) ────────────────────────────────────────
@@ -81,7 +142,16 @@ def warehouse_list(request):
 def item_detail(request, pk: int):
     shop = _get_shop_for_request(request)
     item = get_object_or_404(QrItem, pk=pk, shop=shop)
-    return render(request, "main/item_detail.html", {"shop": shop, "item": item})
+    warranty_presets = [
+        ("3 kun", 3),
+        ("7 kun", 7),
+        ("15 kun", 15),
+        ("1 oy", 30),
+        ("3 oy", 90),
+        ("6 oy", 180),
+        ("1 yil", 365),
+    ]
+    return render(request, "main/item_detail.html", {"shop": shop, "item": item, "warranty_presets": warranty_presets})
 
 
 # ── Sell item (modal POST) ─────────────────────────────────────────────────────

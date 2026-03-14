@@ -39,9 +39,8 @@ class QrItemAddForm(forms.ModelForm):
 
     class Meta:
         model = QrItem
-        fields = ["product_type", "custom_name", "custom_description", "buy_price", "purchase_date"]
+        fields = ["product_type", "custom_description", "buy_price", "purchase_date"]
         widgets = {
-            "custom_name": forms.TextInput(attrs={"class": INPUT, "placeholder": "Ixtiyoriy nom"}),
             "custom_description": forms.Textarea(attrs={"class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)"}),
             "buy_price": forms.NumberInput(attrs={"class": INPUT, "placeholder": "0.00"}),
         }
@@ -52,6 +51,10 @@ class QrItemAddForm(forms.ModelForm):
             self.fields["product_type"].queryset = shop.product_types.filter(is_active=True)
         else:
             self.fields["product_type"].queryset = ProductType.objects.none()
+        # Pre-fill purchase_date with today if not already set
+        if not self.initial.get("purchase_date") and not self.data.get("purchase_date"):
+            from django.utils import timezone
+            self.fields["purchase_date"].initial = timezone.localdate().strftime("%d/%m/%Y")
 
 
 # Keep old name as alias so other imports don't break
@@ -179,25 +182,18 @@ class ShopRegistrationForm(forms.ModelForm):
         return shop
 
 
-LANGUAGE_CHOICES = [
-    ("uz", "O'zbek"),
-    ("ru", "Русский"),
-    ("en", "English"),
-]
-
-
 class ShopProfileForm(forms.ModelForm):
-    language = forms.ChoiceField(
-        choices=LANGUAGE_CHOICES,
-        label="Til",
-        widget=forms.Select(attrs={"class": INPUT}),
+    warranty_mileage_enabled = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={"id": "id_warranty_mileage_enabled"}),
     )
 
     class Meta:
         model = Shop
-        fields = ["name", "phone", "location", "logo", "language", "warranty_mileage_enabled"]
+        fields = ["name", "phone", "location", "logo", "warranty_mileage_enabled"]
         widgets = {
             "name": forms.TextInput(attrs={"class": INPUT, "placeholder": "Do'kon nomi"}),
             "phone": forms.TextInput(attrs={"class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel"}),
             "location": forms.TextInput(attrs={"class": INPUT, "placeholder": "Shahar, ko'cha, uy raqami"}),
+            "logo": forms.FileInput(attrs={"id": "id_logo", "class": "hidden", "accept": "image/*"}),
         }
