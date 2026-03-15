@@ -63,16 +63,16 @@
 
     <!-- Debt banner (shown when item has outstanding debt) -->
     {% if item.debt_amount %}
-    <div class="flex items-center space-x-3 bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
-        <div class="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <div class="flex items-center space-x-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
+        <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
             </svg>
         </div>
         <div>
-            <p class="text-sm font-semibold text-orange-700">Qarz bor</p>
-            <p class="text-xs text-orange-500">{{ item.debt_amount|floatformat:0 }} so'm to'lanmagan</p>
+            <p class="text-sm font-semibold text-red-700">Qarz bor</p>
+            <p class="text-xs text-red-500">{{ item.debt_amount|floatformat:0 }} so'm to'lanmagan</p>
         </div>
     </div>
     {% endif %}
