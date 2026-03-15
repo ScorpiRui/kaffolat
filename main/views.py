@@ -185,6 +185,7 @@ def revert_sell(request, pk: int):
     if request.method == "POST":
         item.client_phone = ""
         item.sold_price = None
+        item.debt_amount = None
         item.warranty_until_date = None
         item.warranty_mileage = None
         item.mileage_unit = ""
@@ -295,6 +296,24 @@ def product_type_list(request):
         .count()
     )
 
+    total_debt = (
+        QrItem.objects
+        .filter(shop=shop)
+        .exclude(client_phone="")
+        .exclude(debt_amount__isnull=True)
+        .exclude(debt_amount=0)
+        .aggregate(total=Sum("debt_amount"))["total"] or 0
+    )
+
+    debt_count = (
+        QrItem.objects
+        .filter(shop=shop)
+        .exclude(client_phone="")
+        .exclude(debt_amount__isnull=True)
+        .exclude(debt_amount=0)
+        .count()
+    )
+
     profit_data = (
         QrItem.objects
         .filter(shop=shop)
@@ -311,6 +330,8 @@ def product_type_list(request):
         "warehouse_total": warehouse_total,
         "sold_with_active_warranty": sold_with_active_warranty,
         "total_profit": total_profit,
+        "total_debt": total_debt,
+        "debt_count": debt_count,
     })
 
 

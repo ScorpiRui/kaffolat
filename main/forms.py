@@ -76,13 +76,16 @@ class QrItemSellForm(forms.ModelForm):
 
     class Meta:
         model = QrItem
-        fields = ["client_phone", "sold_price", "warranty_until_date", "warranty_mileage", "mileage_unit"]
+        fields = ["client_phone", "sold_price", "debt_amount", "warranty_until_date", "warranty_mileage", "mileage_unit"]
         widgets = {
             "client_phone": forms.TextInput(attrs={
                 "class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel",
             }),
             "sold_price": forms.NumberInput(attrs={
                 "class": INPUT, "placeholder": "0.00", "step": "0.01",
+            }),
+            "debt_amount": forms.NumberInput(attrs={
+                "class": INPUT, "placeholder": "0.00", "step": "0.01", "min": "0",
             }),
             "warranty_mileage": forms.NumberInput(attrs={
                 "class": INPUT, "placeholder": "0",
