@@ -1,8 +1,12 @@
+from datetime import datetime
+
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q, Sum
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .forms import ProductTypeForm, QrItemAddForm, QrItemSellForm, ShopProfileForm, ShopRegistrationForm
 from .models import ProductType, QrItem, Shop, WarehouseRecord
@@ -97,7 +101,7 @@ def qr_quick_sell(request, qr_id: str):
         raw_date = request.POST.get("warranty_until_date", "").strip()
         for fmt in ["%d/%m/%Y", "%d.%m.%Y", "%Y-%m-%d"]:
             try:
-                from datetime import datetime
+
                 item.warranty_until_date = datetime.strptime(raw_date, fmt).date()
                 break
             except (ValueError, TypeError):
@@ -208,15 +212,105 @@ def warranty_history(request):
     return render(request, "main/warranty_history.html", {"shop": shop, "items": items})
 
 
+# ── Profit detail (management) ────────────────────────────────────────────────
+
+@login_required
+def profit_detail(request):
+    shop = _get_shop_for_request(request)
+
+    date_from_str = request.GET.get("from", "").strip()
+    date_to_str = request.GET.get("to", "").strip()
+
+    items = (
+        QrItem.objects
+        .filter(shop=shop)
+        .exclude(client_phone="")
+        .exclude(buy_price__isnull=True)
+        .exclude(sold_price__isnull=True)
+        .select_related("product_type")
+        .order_by("-purchase_date", "-created_at")
+    )
+
+    _date_formats = ["%d/%m/%Y", "%d.%m.%Y", "%Y-%m-%d"]
+
+    def _parse_date(s):
+        for fmt in _date_formats:
+            try:
+                return datetime.strptime(s, fmt).date()
+            except (ValueError, TypeError):
+                pass
+        return None
+
+    date_from = None
+    date_to = None
+
+    if date_from_str:
+        date_from = _parse_date(date_from_str)
+        if date_from:
+            items = items.filter(purchase_date__gte=date_from)
+
+    if date_to_str:
+        date_to = _parse_date(date_to_str)
+        if date_to:
+            items = items.filter(purchase_date__lte=date_to)
+
+    profit_data = items.aggregate(total_sold=Sum("sold_price"), total_cost=Sum("buy_price"))
+    total_profit = (profit_data["total_sold"] or 0) - (profit_data["total_cost"] or 0)
+
+    items_with_profit = []
+    for item in items:
+        item.item_profit = (item.sold_price or 0) - (item.buy_price or 0)
+        items_with_profit.append(item)
+
+    return render(request, "main/profit_detail.html", {
+        "shop": shop,
+        "items": items_with_profit,
+        "total_profit": total_profit,
+        "date_from": date_from_str,
+        "date_to": date_to_str,
+        "item_count": len(items_with_profit),
+    })
+
+
 # ── Product types CRUD ────────────────────────────────────────────────────────
 
 @login_required
 def product_type_list(request):
     shop = _get_shop_for_request(request)
     product_types = shop.product_types.all().order_by("name")
+
+    today = timezone.localdate()
+
+    warehouse_total = (
+        QrItem.objects
+        .filter(shop=shop, client_phone="")
+        .aggregate(total=Sum("buy_price"))["total"] or 0
+    )
+
+    sold_with_active_warranty = (
+        QrItem.objects
+        .filter(shop=shop)
+        .exclude(client_phone="")
+        .filter(Q(warranty_until_date__isnull=True) | Q(warranty_until_date__gte=today))
+        .count()
+    )
+
+    profit_data = (
+        QrItem.objects
+        .filter(shop=shop)
+        .exclude(client_phone="")
+        .exclude(buy_price__isnull=True)
+        .exclude(sold_price__isnull=True)
+        .aggregate(total_sold=Sum("sold_price"), total_cost=Sum("buy_price"))
+    )
+    total_profit = (profit_data["total_sold"] or 0) - (profit_data["total_cost"] or 0)
+
     return render(request, "main/product_type_list.html", {
         "shop": shop,
         "product_types": product_types,
+        "warehouse_total": warehouse_total,
+        "sold_with_active_warranty": sold_with_active_warranty,
+        "total_profit": total_profit,
     })
 
 

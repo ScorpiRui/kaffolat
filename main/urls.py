@@ -11,6 +11,7 @@ urlpatterns = [
     path("qr/<str:qr_id>/sell/", views.qr_quick_sell, name="qr_quick_sell"),
     path("warehouse/", views.warehouse_list, name="warehouse_list"),
     path("product-types/", views.product_type_list, name="product_type_list"),
+    path("management/profit/", views.profit_detail, name="profit_detail"),
     path("product-types/create/", views.product_type_create, name="product_type_create"),
     path("product-types/<int:pk>/edit/", views.product_type_edit, name="product_type_edit"),
     path("product-types/<int:pk>/delete/", views.product_type_delete, name="product_type_delete"),

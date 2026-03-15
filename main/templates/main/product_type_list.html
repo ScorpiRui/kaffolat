@@ -1,18 +1,100 @@
 {% extends "main/base.html" %}
 
-{% block title %}Mahsulot turlari{% endblock %}
+{% block title %}Boshqaruv{% endblock %}
 
 {% block header_right %}
 <a href="{% url 'main:product_type_create' %}"
    class="text-xs text-blue-600 font-medium border border-blue-200 rounded-full px-3 py-1.5 active:bg-blue-50">
-    + Qo'shish
+    + Tur qo'sh
 </a>
 {% endblock %}
 
 {% block content %}
-<div class="space-y-3">
+<div class="space-y-4">
 
-    <h1 class="text-lg font-bold text-gray-900 px-1">Mahsulot turlari</h1>
+    <h1 class="text-lg font-bold text-gray-900 px-1">Boshqaruv</h1>
+
+    <!-- ── Stats grid ────────────────────────────────────────────────────── -->
+    <div class="grid grid-cols-2 gap-3">
+
+        <!-- Warehouse total (buy price) -->
+        <a href="{% url 'main:warehouse_list' %}"
+        <a class="bg-white rounded-2xl px-4 py-4 shadow-sm col-span-1">
+            <div class="flex items-center space-x-2 mb-2">
+                <div class="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                </div>
+                <span class="text-xs font-medium text-gray-500 leading-tight">Ombor qiymati</span>
+            </div>
+            <p class="text-base font-bold text-gray-900 leading-tight truncate">
+                {{ warehouse_total|floatformat:0 }}
+                <span class="text-xs font-normal text-gray-400">so'm</span>
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">Sotilmagan mahsulotlar</p>
+        </a>
+
+        <!-- Sold with active warranty -->
+        <a href="{% url 'main:warranty_history' %}" class="bg-white rounded-2xl px-4 py-4 shadow-sm col-span-1">
+            <div class="flex items-center space-x-2 mb-2">
+                <div class="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <span class="text-xs font-medium text-gray-500 leading-tight">Faol kafolat</span>
+            </div>
+            <p class="text-base font-bold text-gray-900 leading-tight">
+                {{ sold_with_active_warranty }}
+                <span class="text-xs font-normal text-gray-400">ta</span>
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">Sotilgan mahsulotlar</p>
+        </a>
+
+        <!-- Total profit (full width) — tappable link to detail page -->
+        <a href="{% url 'main:profit_detail' %}"
+           class="block bg-white rounded-2xl px-4 py-4 shadow-sm col-span-2 active:bg-gray-50">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl {% if total_profit >= 0 %}bg-purple-100{% else %}bg-red-100{% endif %} flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 {% if total_profit >= 0 %}text-purple-600{% else %}text-red-500{% endif %}"
+                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500">Umumiy foyda</p>
+
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="text-right">
+                        <p class="text-lg font-bold {% if total_profit >= 0 %}text-purple-600{% else %}text-red-500{% endif %}">
+                            {% if total_profit >= 0 %}+{% endif %}{{ total_profit|floatformat:0 }}
+                        </p>
+                        <p class="text-xs text-gray-400">so'm</p>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </div>
+        </a>
+
+    </div>
+
+    <!-- ── Product types CRUD ────────────────────────────────────────────── -->
+    <div class="flex items-center justify-between px-1 pt-2">
+        <h2 class="text-sm font-bold text-gray-700">Mahsulot turlari</h2>
+        <a href="{% url 'main:product_type_create' %}"
+           class="text-xs text-blue-600 font-medium">
+            + Qo'shish
+        </a>
+    </div>
 
     {% if product_types %}
         {% for pt in product_types %}
