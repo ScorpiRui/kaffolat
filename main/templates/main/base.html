@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="utf-8">
@@ -191,6 +191,10 @@ function selectWarrantyPreset(btn, inputId, labelId) {
     if (tg) {
         tg.ready();
         tg.expand();
+        /* Native “are you sure?” when user tries to close the Mini App (Telegram 7.7+) */
+        if (typeof tg.enableClosingConfirmation === 'function') {
+            tg.enableClosingConfirmation();
+        }
         if (typeof tg.disableVerticalSwipes === 'function') {
             tg.disableVerticalSwipes();
         }
