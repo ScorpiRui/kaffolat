@@ -17,25 +17,7 @@
 }
 </style>
 
-<div id="normalView" class="flex flex-col items-center" style="min-height: calc(100vh - 200px);">
-
-    <div class="text-center mt-6 mb-5 px-6">
-        <p id="instructionText" class="text-gray-800 font-semibold text-xl leading-snug">
-            QR kodni skanerlang!
-        </p>
-    </div>
-
-    <!-- Mode toggle: Kafolat / Ta'mirlash -->
-    <div class="flex bg-gray-200 rounded-full p-1 mb-8" style="width:260px;">
-        <button id="modeWarranty"
-                class="flex-1 py-2 rounded-full text-sm font-semibold bg-white shadow text-gray-900">
-            Kafolat
-        </button>
-        <button id="modeRepair"
-                class="flex-1 py-2 rounded-full text-sm font-semibold text-gray-400">
-            Ta'mirlash
-        </button>
-    </div>
+<div id="normalView" class="flex flex-col items-center pt-6" style="min-height: calc(100vh - 200px);">
 
     <!-- Static viewfinder -->
     <div class="relative" style="width:270px; height:270px;">
@@ -57,28 +39,18 @@
         </div>
     </div>
 
-    <!-- Manual input -->
-    <div class="mt-auto pt-10 pb-2 w-full px-4">
-        <button id="manualBtn"
-                class="bg-white text-blue-600 font-semibold rounded-full px-6 py-2.5
-                       text-sm shadow-sm border border-gray-200 active:bg-gray-50">
-            Qo'lda kiriting
+    <!-- Mode toggle: Kafolat / Ta'mirlash (below viewfinder — UX flow) -->
+    <div class="flex bg-gray-200 rounded-full p-1 mt-8 mb-8" style="width:260px;">
+        <button type="button" id="modeWarranty"
+                class="flex-1 py-2 rounded-full text-sm font-semibold bg-white shadow text-gray-900">
+            Kafolat
+        </button>
+        <button type="button" id="modeRepair"
+                class="flex-1 py-2 rounded-full text-sm font-semibold text-gray-400">
+            Ta'mirlash
         </button>
     </div>
 
-    <div id="manualPanel" class="hidden w-full px-4 pb-6">
-        <form id="qrForm" class="flex items-stretch space-x-2">
-            <input id="qrInput" type="text" placeholder="QR kod" required
-                   class="flex-1 min-w-0 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900
-                          bg-white shadow-sm placeholder-gray-400
-                          focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button type="submit"
-                    class="bg-blue-600 text-white w-14 rounded-2xl font-bold text-xl
-                           shadow-sm active:bg-blue-700 flex-shrink-0 flex items-center justify-center">
-                &rarr;
-            </button>
-        </form>
-    </div>
 </div>
 
 <!-- Full-screen camera overlay -->
@@ -150,19 +122,12 @@
     var raf = null;
 
     var scanBtn        = document.getElementById('scanBtn');
-    var scanBtnLabel   = document.getElementById('scanBtnLabel');
     var stopBtn        = document.getElementById('stopBtn');
     var video          = document.getElementById('video');
     var canvas         = document.getElementById('canvas');
     var cameraOverlay  = document.getElementById('cameraOverlay');
-    var manualBtn      = document.getElementById('manualBtn');
-    var manualPanel    = document.getElementById('manualPanel');
-    var qrForm         = document.getElementById('qrForm');
-    var qrInput        = document.getElementById('qrInput');
     var modeWarrantyBtn = document.getElementById('modeWarranty');
     var modeRepairBtn   = document.getElementById('modeRepair');
-    var instructionTxt  = document.getElementById('instructionText');
-    var hintText        = document.getElementById('hintText');
     var overlayLabel    = document.getElementById('overlayModeLabel');
 
     function setMode(m) {
@@ -179,12 +144,8 @@
         modeRepairBtn.classList.toggle('text-gray-900', !isW);
         modeRepairBtn.classList.toggle('text-gray-400', isW);
 
-        if (isW) {
-            instructionTxt.innerHTML = "Kafolat uchun<br>QR kodni skanerlang!";
-            overlayLabel.textContent = "Kafolat";
-        } else {
-            instructionTxt.innerHTML = "Ta'mirlash uchun<br>QR kodni skanerlang!";
-            overlayLabel.textContent = "Ta'mirlash";
+        if (overlayLabel) {
+            overlayLabel.textContent = isW ? "Kafolat" : "Ta'mirlash";
         }
     }
 
@@ -293,17 +254,6 @@
     modeRepairBtn.addEventListener('click', function () { setMode('repair'); });
     scanBtn.addEventListener('click', startCamera);
     stopBtn.addEventListener('click', stopCamera);
-
-    manualBtn.addEventListener('click', function () {
-        manualPanel.classList.toggle('hidden');
-        if (!manualPanel.classList.contains('hidden')) qrInput.focus();
-    });
-
-    qrForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var val = qrInput.value.trim();
-        if (val) redirectToQr(val);
-    });
 })();
 </script>
 {% endblock %}
