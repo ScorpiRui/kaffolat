@@ -33,40 +33,24 @@
 
     <!-- Floating header card (positioned below Telegram's top bar via safe area) -->
     <div id="topBar" class="pt-4 pb-2 sticky z-20" style="top:0; background:#EEEDF4; padding-left:20px; padding-right:20px;">
-        <header class="bg-white shadow-sm flex items-center justify-between"
+        <header class="bg-white shadow-sm flex items-center justify-center"
                 style="width:100%; max-width:390px; height:70px; border-radius:113px; padding:0 16px; opacity:1;">
-            <div class="flex items-center space-x-3 min-w-0">
-                {% if shop and shop.logo %}
-                    <img src="{{ shop.logo.url }}" alt="{{ shop.name }}"
-                         class="w-11 h-11 rounded-full object-cover flex-shrink-0">
-                {% else %}
-                    <div class="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center
-                                text-white font-bold text-lg flex-shrink-0">
-                        {% if shop %}{{ shop.name|slice:":1"|upper }}{% else %}K{% endif %}
-                    </div>
-                {% endif %}
-                <div class="min-w-0">
-                    <p class="font-bold text-gray-900 text-base truncate leading-tight">
-                        {% if shop %}{{ shop.name }}{% else %}Kaffolat{% endif %}
-                    </p>
-                    {% if shop %}
-                    <p class="text-xs text-gray-400 leading-tight">ID: {{ shop.pk }}</p>
-                    {% endif %}
-                </div>
-            </div>
+            <p class="font-bold text-gray-900 text-lg truncate leading-tight">
+                {% if shop %}{{ shop.name }}{% else %}Kaffolat{% endif %}
+            </p>
             {% block header_right %}{% endblock %}
         </header>
     </div>
 
     <!-- Page content: clear bottom nav (flush) + safe area -->
-    <main class="flex-1 overflow-y-auto px-4 py-2" style="padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px) + 12px);">
+    <main class="flex-1 overflow-y-auto px-4 py-2" style="padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px) + 12px);">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Bottom navigation (square, flush to bottom) -->
     <nav class="fixed z-20 bg-white pb-safe"
          style="bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:32rem; border-radius:0; box-shadow:0 -2px 12px rgba(0,0,0,0.08);">
-        <div class="flex items-center justify-around px-2" style="min-height:70px;">
+        <div class="flex items-center justify-around px-2" style="min-height:80px;">
 
             <!-- Skaner -->
             {% with active=request.resolver_match.url_name %}

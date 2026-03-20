@@ -5,27 +5,6 @@
 {% block content %}
 <div class="space-y-4">
 
-    {% comment %} <!-- Avatar + shop info -->
-    <div class="bg-white rounded-2xl px-5 py-6 shadow-sm flex items-center space-x-4">
-        {% if shop.logo %}
-            <img src="{{ shop.logo.url }}" alt="{{ shop.name }}"
-                 class="w-16 h-16 rounded-2xl object-cover flex-shrink-0 shadow">
-        {% else %}
-            <div class="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center
-                        text-white font-bold text-2xl flex-shrink-0 shadow">
-                {{ shop.name|slice:":1"|upper }}
-            </div>
-        {% endif %}
-        <div class="min-w-0">
-            <p class="text-lg font-bold text-gray-900 truncate">{{ shop.name }}</p>
-            {% if shop.phone %}
-                <p class="text-sm text-gray-400 mt-0.5">{{ shop.phone }}</p>
-            {% endif %}
-            {% if shop.location %}
-                <p class="text-xs text-gray-400 mt-0.5">{{ shop.location }}</p>
-            {% endif %}
-        </div>
-    </div> {% endcomment %}
 
     <!-- Success message -->
     {% if messages %}
@@ -122,88 +101,6 @@
                         }
                     });
                 }
-            })();
-            </script>
-
-            <!-- Logo -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Logo (rasm)
-                </label>
-
-                <!-- Upload tap zone -->
-                <label for="id_logo" class="flex flex-col items-center justify-center cursor-pointer
-                       rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50
-                       hover:bg-blue-50 hover:border-blue-300 transition-colors py-5 px-4">
-
-                    <!-- Preview: shows current logo or newly selected file -->
-                    <div id="logoPreviewWrap" class="mb-3">
-                        {% if shop.logo %}
-                        <img id="logoPreview" src="{{ shop.logo.url }}" alt="Logo"
-                             class="w-20 h-20 rounded-2xl object-cover shadow">
-                        {% else %}
-                        <div id="logoPlaceholder"
-                             class="w-20 h-20 rounded-2xl bg-blue-100 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor"
-                                 stroke-width="1.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159
-                                         m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909
-                                         M3 20.25h18M3.75 4.5h16.5a.75.75 0 01.75.75v13.5a.75.75
-                                         0 01-.75.75H3.75a.75.75 0 01-.75-.75V5.25a.75.75 0 01.75-.75z"/>
-                            </svg>
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <p class="text-sm font-semibold text-blue-600">Rasm tanlash</p>
-                    <p class="text-xs text-gray-400 mt-0.5">JPG, PNG · Max 5 MB</p>
-
-                    {{ form.logo }}
-                </label>
-
-                <!-- File name badge shown after selection -->
-                <p id="logoFileName"
-                   class="hidden text-xs text-gray-500 mt-2 text-center truncate"></p>
-
-                {% for e in form.logo.errors %}
-                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
-                {% endfor %}
-            </div>
-
-            <script>
-            (function(){
-                const input    = document.getElementById('id_logo');
-                const preview  = document.getElementById('logoPreview');
-                const placeholder = document.getElementById('logoPlaceholder');
-                const fileName = document.getElementById('logoFileName');
-
-                input.addEventListener('change', function(){
-                    const file = input.files[0];
-                    if (!file) return;
-
-                    // Show file name
-                    fileName.textContent = file.name;
-                    fileName.classList.remove('hidden');
-
-                    // Show image preview
-                    const reader = new FileReader();
-                    reader.onload = function(e){
-                        if (preview) {
-                            preview.src = e.target.result;
-                        } else {
-                            // No existing logo — create img
-                            const img = document.createElement('img');
-                            img.id = 'logoPreview';
-                            img.src = e.target.result;
-                            img.className = 'w-20 h-20 rounded-2xl object-cover shadow';
-                            const wrap = document.getElementById('logoPreviewWrap');
-                            if (placeholder) placeholder.replaceWith(img);
-                            else wrap.appendChild(img);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                });
             })();
             </script>
 
