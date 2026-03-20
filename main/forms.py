@@ -9,96 +9,125 @@ INPUT = (
     "focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
 )
 
-
 DATE_INPUT_FORMATS = ["%d/%m/%Y", "%d.%m.%Y", "%Y-%m-%d"]
 
 
-class ProductTypeChoiceField(forms.ModelChoiceField):
-    """Show only product type name, not shop name."""
-
-    def label_from_instance(self, obj):
-        return obj.name
-
-
-class QrItemAddForm(forms.ModelForm):
-    """Step 1 — New QR: add product to warehouse.
-    Fields: product type, name, description, buy price, purchase date."""
-
-    product_type = ProductTypeChoiceField(
-        queryset=ProductType.objects.none(),
-        required=False,
-        empty_label="— Mahsulot tanlang (ixtiyoriy)",
-        widget=forms.Select(attrs={"class": INPUT}),
-    )
-
-    purchase_date = forms.DateField(
-        required=False,
-        input_formats=DATE_INPUT_FORMATS,
-        widget=forms.TextInput(attrs={"class": INPUT + " date-input-mask", "placeholder": "__/__/____", "maxlength": "10"}),
-    )
-
-    class Meta:
-        model = QrItem
-        fields = ["product_type", "custom_description", "buy_price", "purchase_date"]
-        widgets = {
-            "custom_description": forms.Textarea(attrs={"class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)"}),
-            "buy_price": forms.NumberInput(attrs={"class": INPUT, "placeholder": "0.00"}),
-        }
-
-    def __init__(self, *args, shop=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        if shop is not None:
-            self.fields["product_type"].queryset = shop.product_types.filter(is_active=True)
-        else:
-            self.fields["product_type"].queryset = ProductType.objects.none()
-        # Pre-fill purchase_date with today if not already set
-        if not self.initial.get("purchase_date") and not self.data.get("purchase_date"):
-            from django.utils import timezone
-            self.fields["purchase_date"].initial = timezone.localdate().strftime("%d/%m/%Y")
-
-
-# Keep old name as alias so other imports don't break
-QrItemForm = QrItemAddForm
-
-
-class QrItemSellForm(forms.ModelForm):
-    """Step 2 — Sell: add client phone, sold price + warranty to an existing warehouse item."""
-
+class WarrantySellForm(forms.ModelForm):
     warranty_until_date = forms.DateField(
         required=False,
         input_formats=DATE_INPUT_FORMATS,
-        widget=forms.TextInput(attrs={"class": INPUT + " date-input-mask", "placeholder": "__/__/____", "maxlength": "10"}),
+        widget=forms.TextInput(attrs={
+            "class": INPUT + " date-input-mask",
+            "placeholder": "__/__/____",
+            "maxlength": "10",
+        }),
     )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["sold_price"].required = True
 
     class Meta:
         model = QrItem
-        fields = ["client_phone", "sold_price", "debt_amount", "warranty_until_date", "warranty_mileage", "mileage_unit"]
+        fields = [
+            "custom_name", "custom_description", "sold_price",
+            "client_phone", "warranty_until_date",
+            "warranty_mileage",
+        ]
         widgets = {
-            "client_phone": forms.TextInput(attrs={
-                "class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel",
+            "custom_name": forms.TextInput(attrs={
+                "class": INPUT, "placeholder": "Mahsulot nomi",
+            }),
+            "custom_description": forms.Textarea(attrs={
+                "class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)",
             }),
             "sold_price": forms.NumberInput(attrs={
-                "class": INPUT, "placeholder": "0.00", "step": "0.01",
+                "class": INPUT, "placeholder": "0", "step": "1", "min": "0",
             }),
-            "debt_amount": forms.NumberInput(attrs={
-                "class": INPUT, "placeholder": "0.00", "step": "0.01", "min": "0",
+            "client_phone": forms.TextInput(attrs={
+                "class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel",
             }),
             "warranty_mileage": forms.NumberInput(attrs={
                 "class": INPUT, "placeholder": "0",
             }),
-            "mileage_unit": forms.TextInput(attrs={
-                "class": INPUT, "placeholder": "km",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["custom_name"].required = True
+        self.fields["sold_price"].required = True
+        self.fields["client_phone"].required = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if instance.warranty_mileage:
+            instance.mileage_unit = "km"
+        else:
+            instance.mileage_unit = ""
+        if commit:
+            instance.save()
+        return instance
+
+
+class RepairForm(forms.ModelForm):
+    warranty_until_date = forms.DateField(
+        required=False,
+        input_formats=DATE_INPUT_FORMATS,
+        widget=forms.TextInput(attrs={
+            "class": INPUT + " date-input-mask",
+            "placeholder": "__/__/____",
+            "maxlength": "10",
+        }),
+    )
+
+    repair_deadline = forms.DateField(
+        required=False,
+        input_formats=DATE_INPUT_FORMATS,
+        widget=forms.TextInput(attrs={
+            "class": INPUT + " date-input-mask",
+            "placeholder": "__/__/____",
+            "maxlength": "10",
+        }),
+    )
+
+    class Meta:
+        model = QrItem
+        fields = [
+            "custom_name", "custom_description", "repair_deadline",
+            "warranty_until_date", "warranty_mileage",
+            "repair_price", "client_phone",
+        ]
+        widgets = {
+            "custom_name": forms.TextInput(attrs={
+                "class": INPUT, "placeholder": "Mahsulot nomi",
+            }),
+            "custom_description": forms.Textarea(attrs={
+                "class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)",
+            }),
+            "repair_price": forms.NumberInput(attrs={
+                "class": INPUT, "placeholder": "0", "step": "1", "min": "0",
+            }),
+            "client_phone": forms.TextInput(attrs={
+                "class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel",
+            }),
+            "warranty_mileage": forms.NumberInput(attrs={
+                "class": INPUT, "placeholder": "0",
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["custom_name"].required = True
+        self.fields["client_phone"].required = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if instance.warranty_mileage:
+            instance.mileage_unit = "km"
+        else:
+            instance.mileage_unit = ""
+        if commit:
+            instance.save()
+        return instance
+
 
 class ProductTypeForm(forms.ModelForm):
-    """Form for creating/editing product types."""
-
     class Meta:
         model = ProductType
         fields = ["name", "default_description", "is_active"]

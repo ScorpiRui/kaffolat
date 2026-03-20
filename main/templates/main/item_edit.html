@@ -1,9 +1,9 @@
 {% extends "main/base.html" %}
 
-{% block title %}{% if mode == "repair" %}Ta'mirlash{% else %}Kafolat{% endif %}{% endblock %}
+{% block title %}Tahrirlash — {{ item.display_name }}{% endblock %}
 
 {% block header_right %}
-<a href="{% url 'main:shop_home' %}"
+<a href="{% url 'main:item_detail' item.pk %}"
    class="text-xs text-gray-400 border border-gray-200 rounded-full px-3 py-1 active:bg-gray-100">
     &larr; Orqaga
 </a>
@@ -26,21 +26,16 @@
             <p class="text-xs {% if mode == 'repair' %}text-red-400{% else %}text-blue-400{% endif %} font-medium">
                 {% if mode == "repair" %}Ta'mirlash{% else %}Kafolat{% endif %}
             </p>
-            <p class="text-sm font-bold {% if mode == 'repair' %}text-red-700{% else %}text-blue-700{% endif %} font-mono">{{ qr_id }}</p>
+            <p class="text-sm font-bold {% if mode == 'repair' %}text-red-700{% else %}text-blue-700{% endif %} font-mono">{{ item.qr_id }}</p>
         </div>
-        <span class="ml-auto text-xs {% if mode == 'repair' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} font-semibold px-2.5 py-1 rounded-full">
-            Yangi
+        <span class="ml-auto text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full">
+            Tahrirlash
         </span>
     </div>
 
-    <!-- Form card -->
     <div class="bg-white rounded-2xl p-5 shadow-sm">
-        <h2 class="text-base font-bold text-gray-900 mb-1">
-            {% if mode == "repair" %}Ta'mirlash ma'lumotlari{% else %}Sotish ma'lumotlari{% endif %}
-        </h2>
-        <p class="text-xs text-gray-400 mb-4">
-            {% if mode == "repair" %}Mahsulotni ta'mirlash uchun qabul qiling{% else %}Mahsulotni kafolat bilan soting{% endif %}
-        </p>
+        <h2 class="text-base font-bold text-gray-900 mb-1">Ma'lumotlarni yangilash</h2>
+        <p class="text-xs text-gray-400 mb-4">Saqlashdan keyin tarixga yozuv qo'shiladi.</p>
 
         {% if form.non_field_errors %}
         <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
@@ -48,10 +43,9 @@
         </div>
         {% endif %}
 
-        <form method="post" class="space-y-4">
+        <form method="post" action="{% url 'main:item_edit' item.pk %}" class="space-y-4">
             {% csrf_token %}
 
-            <!-- Name -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Mahsulot nomi
@@ -62,7 +56,6 @@
                 {% endfor %}
             </div>
 
-            <!-- Description -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Tavsif <span class="text-gray-300 font-normal normal-case">(ixtiyoriy)</span>
@@ -74,7 +67,6 @@
             </div>
 
             {% if mode == "warranty" %}
-            <!-- Sell price (warranty) -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Sotuv narxi
@@ -87,7 +79,6 @@
             {% endif %}
 
             {% if mode == "repair" %}
-            <!-- Repair price -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Ta'mirlash narxi <span class="text-gray-300 font-normal normal-case">(ixtiyoriy)</span>
@@ -98,7 +89,6 @@
                 {% endfor %}
             </div>
 
-            <!-- Repair deadline -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Tayyor bo'lish sanasi <span class="text-gray-300 font-normal normal-case">(ixtiyoriy)</span>
@@ -110,7 +100,6 @@
             </div>
             {% endif %}
 
-            <!-- Phone -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Telefon raqami
@@ -121,13 +110,15 @@
                 {% endfor %}
             </div>
 
-            <!-- Warranty date -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Kafolat muddati
+                    Kafolat muddati <span class="text-gray-300 font-normal normal-case">(sana yoki tugmalar)</span>
                 </label>
-                <input type="hidden" name="warranty_until_date" id="warrantyDateInput">
-                <div class="flex flex-wrap gap-2">
+                {{ form.warranty_until_date }}
+                {% for e in form.warranty_until_date.errors %}
+                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
+                {% endfor %}
+                <div class="flex flex-wrap gap-2 mt-2">
                     {% for label, days in warranty_presets %}
                     <button type="button" data-days="{{ days }}"
                             onclick="selectWarrantyPreset(this,'warrantyDateInput','warrantyPresetLabel')"
@@ -140,7 +131,6 @@
             </div>
 
             {% if shop.warranty_mileage_enabled %}
-            <!-- Warranty mileage (unit is always km) -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Kafolat yurish cheklovi (km)
@@ -149,12 +139,15 @@
                     {{ form.warranty_mileage }}
                     <span class="text-sm text-gray-500 font-medium flex-shrink-0">km</span>
                 </div>
+                {% for e in form.warranty_mileage.errors %}
+                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
+                {% endfor %}
             </div>
             {% endif %}
 
             <button type="submit"
                     class="w-full {% if mode == 'repair' %}bg-blue-500 active:bg-blue-600{% else %}bg-green-500 active:bg-green-600{% endif %} text-white font-semibold py-3.5 rounded-xl mt-2">
-                {% if mode == "repair" %}Omborga saqlash{% else %}Sotish{% endif %}
+                Saqlash
             </button>
         </form>
     </div>

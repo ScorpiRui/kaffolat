@@ -8,7 +8,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .forms import ProductTypeForm, QrItemAddForm, QrItemSellForm, ShopProfileForm, ShopRegistrationForm
+from .forms import ProductTypeForm, RepairForm, ShopProfileForm, ShopRegistrationForm, WarrantySellForm
 from .models import ProductType, QrItem, Shop, WarehouseRecord
 
 
@@ -20,7 +20,7 @@ def _get_shop_for_request(request) -> Shop:
     return shop
 
 
-# ── Scanner / home ─────────────────────────────────────────────────────────────
+# -- Scanner / home --
 
 @login_required
 def shop_home(request):
@@ -28,36 +28,21 @@ def shop_home(request):
     return render(request, "main/shop_home.html", {"shop": shop})
 
 
-# ── QR handler ─────────────────────────────────────────────────────────────────
-# New QR          → show "Add to warehouse" form (type, name, desc, price, date)
-# Existing QR     → go straight to item detail
+# -- QR handler --
+# Accepts ?mode=warranty (default) or ?mode=repair
+# New QR -> show appropriate form
+# Existing QR -> go to item detail
 
 @login_required
 def qr_handler(request, qr_id: str):
     shop = _get_shop_for_request(request)
+    mode = request.GET.get("mode", "warranty")
+    if mode not in ("warranty", "repair"):
+        mode = "warranty"
 
     existing = QrItem.objects.filter(shop=shop, qr_id=qr_id).first()
     if existing:
         return redirect("main:item_detail", pk=existing.pk)
-
-    # New QR — add to warehouse
-    if request.method == "POST":
-        form = QrItemAddForm(request.POST, shop=shop)
-        if form.is_valid():
-            item = form.save(commit=False)
-            item.shop = shop
-            item.qr_id = qr_id
-            if not item.purchase_date:
-                item.purchase_date = timezone.localdate()
-            item.save()
-            WarehouseRecord.objects.create(
-                item=item,
-                action=WarehouseRecord.ACTION_CREATED,
-                note="Yangi mahsulot omborga qo'shildi",
-            )
-            return redirect("main:item_detail", pk=item.pk)
-    else:
-        form = QrItemAddForm(shop=shop)
 
     warranty_presets = [
         ("3 kun", 3),
@@ -68,79 +53,74 @@ def qr_handler(request, qr_id: str):
         ("6 oy", 180),
         ("1 yil", 365),
     ]
-    return render(request, "main/qr_item_form.html", {
-        "shop": shop,
-        "qr_id": qr_id,
-        "form": form,
-        "is_new": True,
-        "warranty_presets": warranty_presets,
-    })
+
+    if mode == "repair":
+        if request.method == "POST":
+            form = RepairForm(request.POST)
+            if form.is_valid():
+                item = form.save(commit=False)
+                item.shop = shop
+                item.qr_id = qr_id
+                item.item_type = QrItem.TYPE_REPAIR
+                item.is_completed = False
+                item.purchase_date = timezone.localdate()
+                item.save()
+                WarehouseRecord.objects.create(
+                    item=item,
+                    action=WarehouseRecord.ACTION_CREATED,
+                    note="Ta'mirlash uchun qabul qilindi",
+                )
+                return redirect("main:item_detail", pk=item.pk)
+        else:
+            form = RepairForm()
+        return render(request, "main/qr_item_form.html", {
+            "shop": shop,
+            "qr_id": qr_id,
+            "form": form,
+            "mode": "repair",
+            "warranty_presets": warranty_presets,
+        })
+    else:
+        if request.method == "POST":
+            form = WarrantySellForm(request.POST)
+            if form.is_valid():
+                item = form.save(commit=False)
+                item.shop = shop
+                item.qr_id = qr_id
+                item.item_type = QrItem.TYPE_WARRANTY
+                item.purchase_date = timezone.localdate()
+                item.save()
+                WarehouseRecord.objects.create(
+                    item=item,
+                    action=WarehouseRecord.ACTION_CREATED,
+                    note="Kafolat bilan sotildi",
+                )
+                return redirect("main:item_detail", pk=item.pk)
+        else:
+            form = WarrantySellForm()
+        return render(request, "main/qr_item_form.html", {
+            "shop": shop,
+            "qr_id": qr_id,
+            "form": form,
+            "mode": "warranty",
+            "warranty_presets": warranty_presets,
+        })
 
 
-# ── Quick sell new QR (create item + sell in one step) ────────────────────────
-
-@login_required
-def qr_quick_sell(request, qr_id: str):
-    shop = _get_shop_for_request(request)
-    if request.method != "POST":
-        return redirect("main:qr_handler", qr_id=qr_id)
-
-    # Create the item first using warehouse form data
-    add_form = QrItemAddForm(request.POST, shop=shop)
-    if add_form.is_valid():
-        item = add_form.save(commit=False)
-        item.shop = shop
-        item.qr_id = qr_id
-        if not item.purchase_date:
-            item.purchase_date = timezone.localdate()
-        # Apply sell fields from POST
-        item.sold_price = request.POST.get("sold_price") or None
-        item.client_phone = request.POST.get("client_phone", "")
-        # Parse warranty date
-        from django.utils.dateparse import parse_date
-        raw_date = request.POST.get("warranty_until_date", "").strip()
-        for fmt in ["%d/%m/%Y", "%d.%m.%Y", "%Y-%m-%d"]:
-            try:
-
-                item.warranty_until_date = datetime.strptime(raw_date, fmt).date()
-                break
-            except (ValueError, TypeError):
-                pass
-        if request.POST.get("warranty_mileage"):
-            try:
-                item.warranty_mileage = int(request.POST.get("warranty_mileage"))
-                item.mileage_unit = request.POST.get("mileage_unit", "km")
-            except (ValueError, TypeError):
-                pass
-        item.save()
-        WarehouseRecord.objects.create(
-            item=item,
-            action=WarehouseRecord.ACTION_CREATED,
-            note="Yangi mahsulot qo'shildi va sotildi",
-        )
-        WarehouseRecord.objects.create(
-            item=item,
-            action=WarehouseRecord.ACTION_UPDATED,
-            note="Mahsulot sotildi, kafolat ma'lumotlari kiritildi",
-        )
-    return redirect("main:item_detail", pk=item.pk)
-
-
-# ── Warehouse (all registered products) ────────────────────────────────────────
+# -- Warehouse (repair items not yet completed) --
 
 @login_required
 def warehouse_list(request):
     shop = _get_shop_for_request(request)
     items = (
         QrItem.objects
-        .filter(shop=shop)
-        .filter(client_phone="")
+        .filter(shop=shop, item_type=QrItem.TYPE_REPAIR, is_completed=False)
         .select_related("product_type")
     )
     return render(request, "main/warehouse_list.html", {"shop": shop, "items": items})
 
 
-# ── Item detail ────────────────────────────────────────────────────────────────
+# -- Item detail --
 
 @login_required
 def item_detail(request, pk: int):
@@ -155,86 +135,138 @@ def item_detail(request, pk: int):
         ("6 oy", 180),
         ("1 yil", 365),
     ]
-    return render(request, "main/item_detail.html", {"shop": shop, "item": item, "warranty_presets": warranty_presets})
+    return render(request, "main/item_detail.html", {
+        "shop": shop,
+        "item": item,
+        "warranty_presets": warranty_presets,
+    })
 
 
-# ── Sell item (modal POST) ─────────────────────────────────────────────────────
-
-@login_required
-def sell_item(request, pk: int):
-    shop = _get_shop_for_request(request)
-    item = get_object_or_404(QrItem, pk=pk, shop=shop)
-    if request.method == "POST":
-        form = QrItemSellForm(request.POST, instance=item)
-        if form.is_valid():
-            form.save()
-            WarehouseRecord.objects.create(
-                item=item,
-                action=WarehouseRecord.ACTION_UPDATED,
-                note="Mahsulot sotildi, kafolat ma'lumotlari kiritildi",
-            )
-    return redirect("main:item_detail", pk=pk)
-
-
-# ── Revert sell (unsell — move back to warehouse) ──────────────────────────────
+# -- Edit item (warehouse repair or history warranty / completed repair) --
 
 @login_required
-def revert_sell(request, pk: int):
+def item_edit(request, pk: int):
     shop = _get_shop_for_request(request)
     item = get_object_or_404(QrItem, pk=pk, shop=shop)
-    if request.method == "POST":
-        item.client_phone = ""
-        item.sold_price = None
-        item.debt_amount = None
-        item.warranty_until_date = None
-        item.warranty_mileage = None
-        item.mileage_unit = ""
+
+    warranty_presets = [
+        ("3 kun", 3),
+        ("7 kun", 7),
+        ("15 kun", 15),
+        ("1 oy", 30),
+        ("3 oy", 90),
+        ("6 oy", 180),
+        ("1 yil", 365),
+    ]
+
+    if item.is_repair:
+        if request.method == "POST":
+            form = RepairForm(request.POST, instance=item)
+            if form.is_valid():
+                form.save()
+                WarehouseRecord.objects.create(
+                    item=item,
+                    action=WarehouseRecord.ACTION_UPDATED,
+                    note="Ma'lumotlar tahrirlandi",
+                )
+                messages.success(request, "O'zgarishlar saqlandi.")
+                return redirect("main:item_detail", pk=item.pk)
+        else:
+            form = RepairForm(instance=item)
+        mode = "repair"
+    else:
+        if request.method == "POST":
+            form = WarrantySellForm(request.POST, instance=item)
+            if form.is_valid():
+                form.save()
+                WarehouseRecord.objects.create(
+                    item=item,
+                    action=WarehouseRecord.ACTION_UPDATED,
+                    note="Ma'lumotlar tahrirlandi",
+                )
+                messages.success(request, "O'zgarishlar saqlandi.")
+                return redirect("main:item_detail", pk=item.pk)
+        else:
+            form = WarrantySellForm(instance=item)
+        mode = "warranty"
+
+    form.fields["warranty_until_date"].widget.attrs["id"] = "warrantyDateInput"
+
+    return render(request, "main/item_edit.html", {
+        "shop": shop,
+        "item": item,
+        "form": form,
+        "mode": mode,
+        "warranty_presets": warranty_presets,
+    })
+
+
+# -- Complete repair (mark repair as done) --
+
+@login_required
+def complete_repair(request, pk: int):
+    shop = _get_shop_for_request(request)
+    item = get_object_or_404(QrItem, pk=pk, shop=shop)
+    if request.method == "POST" and item.is_repair and not item.is_completed:
+        item.is_completed = True
         item.save()
         WarehouseRecord.objects.create(
             item=item,
-            action=WarehouseRecord.ACTION_REVERTED,
-            note="Sotuv bekor qilindi, mahsulot omborga qaytarildi",
+            action=WarehouseRecord.ACTION_COMPLETED,
+            note="Ta'mirlash yakunlandi, mijozga topshirildi",
         )
     return redirect("main:item_detail", pk=pk)
 
 
-# ── History (sold products — items that have a client phone) ───────────────────
+# -- Revert completion (move back to warehouse) --
+
+@login_required
+def revert_complete(request, pk: int):
+    shop = _get_shop_for_request(request)
+    item = get_object_or_404(QrItem, pk=pk, shop=shop)
+    if request.method == "POST" and item.is_repair and item.is_completed:
+        item.is_completed = False
+        item.save()
+        WarehouseRecord.objects.create(
+            item=item,
+            action=WarehouseRecord.ACTION_REVERTED,
+            note="Ta'mirlash qaytarildi, mahsulot omborga qaytdi",
+        )
+    return redirect("main:item_detail", pk=pk)
+
+
+# -- History (warranty items + completed repairs) --
 
 @login_required
 def warranty_history(request):
     shop = _get_shop_for_request(request)
-    # "sold" = items that have a client phone registered
     items = (
         QrItem.objects
         .filter(shop=shop)
-        .exclude(client_phone="")
+        .filter(
+            Q(item_type=QrItem.TYPE_WARRANTY) |
+            Q(item_type=QrItem.TYPE_REPAIR, is_completed=True)
+        )
         .select_related("product_type")
     )
-    return render(request, "main/warranty_history.html", {"shop": shop, "items": items})
 
-
-# ── Profit detail (management) ────────────────────────────────────────────────
-
-@login_required
-def profit_detail(request):
-    shop = _get_shop_for_request(request)
-
+    search_q = request.GET.get("q", "").strip()
     date_from_str = request.GET.get("from", "").strip()
     date_to_str = request.GET.get("to", "").strip()
 
-    items = (
-        QrItem.objects
-        .filter(shop=shop)
-        .exclude(client_phone="")
-        .exclude(buy_price__isnull=True)
-        .exclude(sold_price__isnull=True)
-        .select_related("product_type")
-        .order_by("-purchase_date", "-created_at")
-    )
+    if search_q:
+        items = items.filter(
+            Q(custom_name__icontains=search_q)
+            | Q(custom_description__icontains=search_q)
+            | Q(client_phone__icontains=search_q)
+            | Q(qr_id__icontains=search_q)
+        )
 
     _date_formats = ["%d/%m/%Y", "%d.%m.%Y", "%Y-%m-%d"]
 
     def _parse_date(s):
+        if not s:
+            return None
         for fmt in _date_formats:
             try:
                 return datetime.strptime(s, fmt).date()
@@ -242,38 +274,26 @@ def profit_detail(request):
                 pass
         return None
 
-    date_from = None
-    date_to = None
+    date_from = _parse_date(date_from_str)
+    date_to = _parse_date(date_to_str)
 
-    if date_from_str:
-        date_from = _parse_date(date_from_str)
-        if date_from:
-            items = items.filter(purchase_date__gte=date_from)
+    if date_from:
+        items = items.filter(created_at__date__gte=date_from)
+    if date_to:
+        items = items.filter(created_at__date__lte=date_to)
 
-    if date_to_str:
-        date_to = _parse_date(date_to_str)
-        if date_to:
-            items = items.filter(purchase_date__lte=date_to)
+    items = items.order_by("-created_at")
 
-    profit_data = items.aggregate(total_sold=Sum("sold_price"), total_cost=Sum("buy_price"))
-    total_profit = (profit_data["total_sold"] or 0) - (profit_data["total_cost"] or 0)
-
-    items_with_profit = []
-    for item in items:
-        item.item_profit = (item.sold_price or 0) - (item.buy_price or 0)
-        items_with_profit.append(item)
-
-    return render(request, "main/profit_detail.html", {
+    return render(request, "main/warranty_history.html", {
         "shop": shop,
-        "items": items_with_profit,
-        "total_profit": total_profit,
+        "items": items,
+        "search_q": search_q,
         "date_from": date_from_str,
         "date_to": date_to_str,
-        "item_count": len(items_with_profit),
     })
 
 
-# ── Product types CRUD ────────────────────────────────────────────────────────
+# -- Management page --
 
 @login_required
 def product_type_list(request):
@@ -282,56 +302,31 @@ def product_type_list(request):
 
     today = timezone.localdate()
 
-    warehouse_total = (
+    repair_in_progress = (
         QrItem.objects
-        .filter(shop=shop, client_phone="")
-        .aggregate(total=Sum("buy_price"))["total"] or 0
+        .filter(shop=shop, item_type=QrItem.TYPE_REPAIR, is_completed=False)
+        .count()
     )
 
-    sold_with_active_warranty = (
+    warranty_active = (
         QrItem.objects
-        .filter(shop=shop)
-        .exclude(client_phone="")
+        .filter(shop=shop, item_type=QrItem.TYPE_WARRANTY)
         .filter(Q(warranty_until_date__isnull=True) | Q(warranty_until_date__gte=today))
         .count()
     )
 
-    total_debt = (
-        QrItem.objects
-        .filter(shop=shop)
-        .exclude(client_phone="")
-        .exclude(debt_amount__isnull=True)
-        .exclude(debt_amount=0)
-        .aggregate(total=Sum("debt_amount"))["total"] or 0
-    )
-
-    debt_count = (
-        QrItem.objects
-        .filter(shop=shop)
-        .exclude(client_phone="")
-        .exclude(debt_amount__isnull=True)
-        .exclude(debt_amount=0)
-        .count()
-    )
-
-    profit_data = (
-        QrItem.objects
-        .filter(shop=shop)
-        .exclude(client_phone="")
-        .exclude(buy_price__isnull=True)
-        .exclude(sold_price__isnull=True)
-        .aggregate(total_sold=Sum("sold_price"), total_cost=Sum("buy_price"))
-    )
-    total_profit = (profit_data["total_sold"] or 0) - (profit_data["total_cost"] or 0)
+    total_warranty_items = QrItem.objects.filter(shop=shop, item_type=QrItem.TYPE_WARRANTY).count()
+    total_repair_items = QrItem.objects.filter(shop=shop, item_type=QrItem.TYPE_REPAIR).count()
+    completed_repairs = QrItem.objects.filter(shop=shop, item_type=QrItem.TYPE_REPAIR, is_completed=True).count()
 
     return render(request, "main/product_type_list.html", {
         "shop": shop,
         "product_types": product_types,
-        "warehouse_total": warehouse_total,
-        "sold_with_active_warranty": sold_with_active_warranty,
-        "total_profit": total_profit,
-        "total_debt": total_debt,
-        "debt_count": debt_count,
+        "repair_in_progress": repair_in_progress,
+        "warranty_active": warranty_active,
+        "total_warranty_items": total_warranty_items,
+        "total_repair_items": total_repair_items,
+        "completed_repairs": completed_repairs,
     })
 
 
@@ -386,7 +381,7 @@ def product_type_delete(request, pk: int):
     return redirect("main:product_type_list")
 
 
-# ── Profile / Settings ─────────────────────────────────────────────────────────
+# -- Profile / Settings --
 
 @login_required
 def shop_profile(request):
@@ -402,7 +397,7 @@ def shop_profile(request):
     return render(request, "main/shop_profile.html", {"shop": shop, "form": form})
 
 
-# ── Public customer page (/qr?id=…) ───────────────────────────────────────────
+# -- Public customer page --
 
 def public_item_from_query(request):
     qr_id = request.GET.get("id", "").strip()
@@ -412,13 +407,12 @@ def public_item_from_query(request):
     return render(request, "main/public_item_detail.html", {"item": item, "shop": item.shop})
 
 
-# legacy path-based URL kept for backward compat
 def public_item_detail(request, qr_id: str):
     item = get_object_or_404(QrItem.objects.select_related("shop", "product_type"), qr_id=qr_id)
     return render(request, "main/public_item_detail.html", {"item": item, "shop": item.shop})
 
 
-# ── Shop registration (staff only) ────────────────────────────────────────────
+# -- Shop registration (staff only) --
 
 @staff_member_required
 def shop_register(request):

@@ -18,8 +18,8 @@ class ProductTypeAdmin(admin.ModelAdmin):
 
 @admin.register(QrItem)
 class QrItemAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "shop", "qr_id", "purchase_date", "client_phone")
-    list_filter = ("shop", "product_type")
+    list_display = ("display_name", "shop", "qr_id", "item_type", "is_completed", "client_phone")
+    list_filter = ("shop", "item_type", "is_completed")
     search_fields = ("qr_id", "custom_name", "client_phone")
 
 

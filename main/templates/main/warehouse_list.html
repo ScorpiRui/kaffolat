@@ -6,30 +6,31 @@
 <div class="space-y-3">
 
     <h1 class="text-lg font-bold text-gray-900 px-1">Ombor</h1>
+    <p class="text-xs text-gray-400 px-1 -mt-2">Ta'mirlanayotgan mahsulotlar</p>
 
     {% if items %}
         {% for item in items %}
         <a href="{% url 'main:item_detail' item.pk %}"
            class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
             <div class="flex items-center space-x-3 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0
-                            text-blue-600 font-bold text-sm">
+                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0
+                            text-red-600 font-bold text-sm">
                     {{ item.display_name|slice:":1"|upper }}
                 </div>
                 <div class="min-w-0">
                     <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
                     <p class="text-xs text-gray-400 truncate">
-                        {{ item.qr_id }}{% if item.client_phone %} · {{ item.client_phone }}{% endif %}
+                        {{ item.client_phone|default:item.qr_id }}
                     </p>
                 </div>
             </div>
             <div class="flex items-center space-x-2 flex-shrink-0 ml-2">
                 <div class="text-right">
-                    <p class="text-xs text-gray-400">{{ item.purchase_date }}</p>
-                    {% if item.warranty_until_date %}
-                    <p class="text-xs {% if item.warranty_is_valid %}text-green-500{% else %}text-red-400{% endif %}">
-                        {% if item.warranty_is_valid %}✓ Kafolat{% else %}✗ Muddati o'tgan{% endif %}
-                    </p>
+                    {% if item.repair_deadline %}
+                    <p class="text-xs text-red-500 font-medium">{{ item.repair_deadline }}</p>
+                    {% endif %}
+                    {% if item.repair_price %}
+                    <p class="text-xs text-gray-500">{{ item.repair_price|floatformat:0 }} so'm</p>
                     {% endif %}
                 </div>
                 <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -47,7 +48,7 @@
                 </svg>
             </div>
             <p class="text-sm font-medium text-gray-400">Ombor hozircha bo'sh</p>
-            <p class="text-xs text-gray-300 mt-1">QR skaner orqali mahsulot qo'shing</p>
+            <p class="text-xs text-gray-300 mt-1">Ta'mirlash uchun QR skanerdan foydalaning</p>
         </div>
     {% endif %}
 

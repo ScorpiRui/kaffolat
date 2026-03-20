@@ -3,20 +3,41 @@
 {% block title %}{{ item.display_name }}{% endblock %}
 
 {% block header_right %}
-<a href="{% url 'main:warehouse_list' %}"
-   class="text-xs text-gray-400 border border-gray-200 rounded-full px-3 py-1 active:bg-gray-100">
-    ← Orqaga
-</a>
+<div class="flex items-center gap-2 flex-shrink-0">
+    <a href="{% url 'main:item_edit' item.pk %}"
+       class="text-xs text-blue-600 font-medium border border-blue-200 rounded-full px-3 py-1 active:bg-blue-50">
+        Tahrirlash
+    </a>
+    <a href="{% if item.is_repair and not item.is_completed %}{% url 'main:warehouse_list' %}{% else %}{% url 'main:warranty_history' %}{% endif %}"
+       class="text-xs text-gray-400 border border-gray-200 rounded-full px-3 py-1 active:bg-gray-100">
+        &larr; Orqaga
+    </a>
+</div>
 {% endblock %}
 
 {% block content %}
 <div class="space-y-4">
 
+    <!-- Type badge -->
+    <div class="flex items-center space-x-2 px-1">
+        {% if item.is_repair %}
+        <span class="text-xs font-semibold bg-red-100 text-red-700 px-3 py-1 rounded-full">Ta'mirlash</span>
+        {% else %}
+        <span class="text-xs font-semibold bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Kafolat</span>
+        {% endif %}
+        {% if item.is_repair %}
+            {% if item.is_completed %}
+            <span class="text-xs font-semibold bg-green-100 text-green-700 px-3 py-1 rounded-full">Yakunlangan</span>
+            {% else %}
+            <span class="text-xs font-semibold bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">Jarayonda</span>
+            {% endif %}
+        {% endif %}
+    </div>
+
     <!-- Product card -->
     <div class="bg-white rounded-2xl p-5 shadow-sm">
         <div class="flex items-start space-x-3 mb-4">
-            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0
-                        text-blue-600 font-bold text-lg">
+            <div class="w-12 h-12 rounded-xl {% if item.is_repair %}bg-red-100 text-red-600{% else %}bg-blue-100 text-blue-600{% endif %} flex items-center justify-center flex-shrink-0 font-bold text-lg">
                 {{ item.display_name|slice:":1"|upper }}
             </div>
             <div class="min-w-0 flex-1">
@@ -32,50 +53,40 @@
         {% endif %}
 
         <div class="divide-y divide-gray-100">
-            <div class="flex justify-between py-3 text-sm">
-                <span class="text-gray-400">Xarid sanasi</span>
-                <span class="font-medium text-gray-800">{{ item.purchase_date }}</span>
-            </div>
             {% if item.client_phone %}
             <div class="flex justify-between py-3 text-sm">
-                <span class="text-gray-400">Mijoz telefoni</span>
-                <span class="font-medium text-gray-800">{{ item.client_phone|default:"—" }}</span>
+                <span class="text-gray-400">Telefon raqami</span>
+                <span class="font-medium text-gray-800">{{ item.client_phone }}</span>
             </div>
             {% endif %}
-            <div class="flex justify-between py-3 text-sm">
-                <span class="text-gray-400">Xarid narxi</span>
-                <span class="font-medium text-gray-800">{{ item.buy_price|default:"—" }}</span>
-            </div>
-            {% if item.sold_price %}
+
+            {% if item.is_warranty and item.sold_price %}
             <div class="flex justify-between py-3 text-sm">
                 <span class="text-gray-400">Sotuv narxi</span>
                 <span class="font-medium text-green-600">{{ item.sold_price|floatformat:0 }}</span>
             </div>
             {% endif %}
-            {% if item.debt_amount %}
+
+            {% if item.is_repair and item.repair_price %}
             <div class="flex justify-between py-3 text-sm">
-                <span class="text-gray-400">Qarz miqdori</span>
-                <span class="font-bold text-orange-500">{{ item.debt_amount|floatformat:0 }} so'm</span>
+                <span class="text-gray-400">Ta'mirlash narxi</span>
+                <span class="font-medium text-orange-600">{{ item.repair_price|floatformat:0 }}</span>
             </div>
             {% endif %}
-        </div>
-    </div>
 
-    <!-- Debt banner (shown when item has outstanding debt) -->
-    {% if item.debt_amount %}
-    <div class="flex items-center space-x-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
-        <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-            </svg>
-        </div>
-        <div>
-            <p class="text-sm font-semibold text-red-700">Qarz bor</p>
-            <p class="text-xs text-red-500">{{ item.debt_amount|floatformat:0 }} so'm to'lanmagan</p>
+            {% if item.is_repair and item.repair_deadline %}
+            <div class="flex justify-between py-3 text-sm">
+                <span class="text-gray-400">Tayyor bo'lish sanasi</span>
+                <span class="font-medium text-gray-800">{{ item.repair_deadline }}</span>
+            </div>
+            {% endif %}
+
+            <div class="flex justify-between py-3 text-sm">
+                <span class="text-gray-400">Qo'shilgan sana</span>
+                <span class="font-medium text-gray-800">{{ item.created_at|date:"d.m.Y" }}</span>
+            </div>
         </div>
     </div>
-    {% endif %}
 
     <!-- Warranty card -->
     <div class="bg-white rounded-2xl p-5 shadow-sm">
@@ -113,7 +124,7 @@
             {% if item.warranty_mileage %}
             <div class="flex justify-between py-3 text-sm">
                 <span class="text-gray-400">Yurish cheklovi</span>
-                <span class="font-medium text-gray-800">{{ item.warranty_mileage }} {{ item.mileage_unit }}</span>
+                <span class="font-medium text-gray-800">{{ item.warranty_mileage }} km</span>
             </div>
             {% endif %}
             {% if not item.warranty_until_date and not item.warranty_mileage %}
@@ -122,10 +133,25 @@
         </div>
     </div>
 
-    <!-- Revert button (shown only when sold) -->
-    {% if item.client_phone %}
-    <form method="post" action="{% url 'main:revert_sell' item.pk %}" class="mb-4"
-          onsubmit="return confirm('Mahsulotni omborga qaytarishni xohlaysizmi?');">
+    <!-- Actions for repair items -->
+    {% if item.is_repair and not item.is_completed %}
+    <form method="post" action="{% url 'main:complete_repair' item.pk %}"
+          onsubmit="return confirm('Ta\'mirlash yakunlandi deb belgilaysizmi?');">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full bg-green-500 text-white font-semibold py-3.5 rounded-2xl
+                       shadow-sm active:bg-green-600 flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Ta'mirlash yakunlandi</span>
+        </button>
+    </form>
+    {% endif %}
+
+    {% if item.is_repair and item.is_completed %}
+    <form method="post" action="{% url 'main:revert_complete' item.pk %}"
+          onsubmit="return confirm('Ta\'mirlashni qaytarishni xohlaysizmi?');">
         {% csrf_token %}
         <button type="submit"
                 class="w-full bg-red-600 text-white font-semibold py-3.5 rounded-2xl
@@ -134,46 +160,28 @@
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
-            <span>Sotuvni bekor qilish</span>
+            <span>Qaytarish</span>
         </button>
     </form>
-    {% endif %}
-
-    <!-- Sell button (shown only when not yet sold) -->
-    {% if not item.client_phone %}
-    <button id="sellBtn"
-            class="w-full bg-green-500 text-white font-semibold py-3.5 rounded-2xl
-                   shadow-sm active:bg-green-600 flex items-center justify-center space-x-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0
-                     3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946
-                     3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138
-                     3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806
-                     3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438
-                     3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-        </svg>
-        <span>Sotish</span>
-    </button>
     {% endif %}
 
     <!-- History -->
     {% if item.history.all %}
     <div class="bg-white rounded-2xl p-5 shadow-sm">
-        <h2 class="text-sm font-semibold text-gray-800 mb-3">O'zgarishlar tarixi</h2>
+        <h2 class="text-sm font-semibold text-gray-800 mb-3">Tarix</h2>
         <div class="space-y-3">
             {% for record in item.history.all %}
             <div class="flex items-start space-x-3">
                 <div class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0
                     {% if record.action == 'created' %}bg-green-400
+                    {% elif record.action == 'completed' %}bg-blue-400
                     {% elif record.action == 'reverted' %}bg-red-400
-                    {% elif record.action == 'updated' %}bg-yellow-400
-                    {% else %}bg-blue-400{% endif %}"></div>
+                    {% else %}bg-gray-400{% endif %}"></div>
                 <div>
                     <p class="text-xs font-medium text-gray-700">
-                        {% if record.action == 'created' %}Omborga qo'shildi
-                        {% elif record.action == 'reverted' %}Sotuv bekor qilindi
-                        {% elif record.action == 'updated' %}Sotildi 
+                        {% if record.action == 'created' %}Qo'shildi
+                        {% elif record.action == 'completed' %}Yakunlandi
+                        {% elif record.action == 'reverted' %}Qaytarildi
                         {% else %}Yangilandi{% endif %}
                     </p>
                     {% if record.note %}
@@ -188,142 +196,4 @@
     {% endif %}
 
 </div>
-
-
-<!-- ── Sell modal ────────────────────────────────────────────────────── -->
-{% if not item.client_phone %}
-<div id="sellModal"
-     class="hidden fixed inset-0 z-50 flex items-end justify-center"
-     style="background:rgba(0,0,0,0.45); backdrop-filter:blur(2px);">
-
-    <div class="bg-white w-full max-w-lg rounded-t-3xl p-6 pb-8 space-y-4"
-         style="max-height:90vh; overflow-y:auto;">
-
-        <!-- Modal header -->
-        <div class="flex items-center justify-between mb-1">
-            <h2 class="text-base font-bold text-gray-900">Sotish</h2>
-            <button id="closeModal"
-                    class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100
-                           text-gray-500 active:bg-gray-200">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-
-        <form method="post" action="{% url 'main:sell_item' item.pk %}" class="space-y-4" novalidate>
-            {% csrf_token %}
-
-            <!-- Sold price -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Sotuv narxi
-                </label>
-                <input type="number" name="sold_price" required step="0.01" min="0"
-                       placeholder="0.00"
-                       class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm
-                              focus:outline-none focus:ring-2 focus:ring-green-400">
-            </div>
-
-            <!-- Debt amount -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Qarz miqdori
-                    <span class="normal-case font-normal text-gray-400 ml-1">(ixtiyoriy)</span>
-                </label>
-                <div class="relative">
-                    <input type="number" name="debt_amount" step="0.01" min="0"
-                           placeholder="0.00"
-                           class="w-full border border-orange-200 rounded-xl px-4 py-3 text-sm
-                                  focus:outline-none focus:ring-2 focus:ring-orange-300 bg-orange-50">
-                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-orange-400 font-medium">so'm</span>
-                </div>
-                <p class="text-xs text-gray-400 mt-1">To'liq to'lamagan bo'lsa qarz summasini kiriting</p>
-            </div>
-
-            <!-- Client phone -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Mijoz telefon raqami
-                </label>
-                <input type="tel" name="client_phone" required
-                       placeholder="+998 90 000 00 00"
-                       class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm
-                              focus:outline-none focus:ring-2 focus:ring-green-400">
-            </div>
-
-            <!-- Warranty date -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Kafolat muddati
-                </label>
-                <input type="hidden" name="warranty_until_date" id="warrantyDateInput">
-                <div class="flex flex-wrap gap-2">
-                    {% for label, days in warranty_presets %}
-                    <button type="button"
-                            data-days="{{ days }}"
-                            onclick="selectWarrantyPreset(this, 'warrantyDateInput', 'warrantyPresetLabel')"
-                            class="warranty-preset px-3 py-1.5 rounded-full border border-gray-200 text-xs font-medium text-gray-600 bg-white active:bg-green-50">
-                        {{ label }}
-                    </button>
-                    {% endfor %}
-                </div>
-                <p id="warrantyPresetLabel" class="text-xs text-green-600 mt-1.5 hidden"></p>
-            </div>
-
-            <!-- Warranty mileage — shown only if enabled in shop settings -->
-            {% if shop.warranty_mileage_enabled %}
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Kafolat yurish cheklovi
-                </label>
-                <div class="flex space-x-2">
-                    <input type="number" name="warranty_mileage"
-                           placeholder="0" min="0"
-                           class="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm
-                                  focus:outline-none focus:ring-2 focus:ring-green-400">
-                    <input type="text" name="mileage_unit"
-                           placeholder="km" value="km"
-                           class="w-20 border border-gray-200 rounded-xl px-3 py-3 text-sm text-center
-                                  focus:outline-none focus:ring-2 focus:ring-green-400">
-                </div>
-            </div>
-            {% endif %}
-
-            <button type="submit"
-                    class="w-full bg-green-500 text-white font-semibold py-3.5 rounded-xl
-                           active:bg-green-600 mt-2">
-                Saqlash
-            </button>
-        </form>
-
-    </div>
-</div>
-
-<script>
-(function () {
-    const modal     = document.getElementById('sellModal');
-    const sellBtn   = document.getElementById('sellBtn');
-    const closeBtn  = document.getElementById('closeModal');
-
-    sellBtn.addEventListener('click', function () {
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    });
-
-    function closeModal() {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    closeBtn.addEventListener('click', closeModal);
-
-    // Close on backdrop tap
-    modal.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-    });
-})();
-</script>
-{% endif %}
-
 {% endblock %}

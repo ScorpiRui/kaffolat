@@ -14,29 +14,29 @@
 
     <h1 class="text-lg font-bold text-gray-900 px-1">Boshqaruv</h1>
 
-    <!-- ── Stats grid ────────────────────────────────────────────────────── -->
+    <!-- Stats grid -->
     <div class="grid grid-cols-2 gap-3">
 
-        <!-- Warehouse total (buy price) -->
-        <a href="{% url 'main:warehouse_list' %}"
-        <a class="bg-white rounded-2xl px-4 py-4 shadow-sm col-span-1">
+        <!-- Repair in progress -->
+        <a href="{% url 'main:warehouse_list' %}" class="bg-white rounded-2xl px-4 py-4 shadow-sm col-span-1">
             <div class="flex items-center space-x-2 mb-2">
-                <div class="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <div class="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                 </div>
-                <span class="text-xs font-medium text-gray-500 leading-tight">Ombor qiymati</span>
+                <span class="text-xs font-medium text-gray-500 leading-tight">Ta'mirda</span>
             </div>
-            <p class="text-base font-bold text-gray-900 leading-tight truncate">
-                {{ warehouse_total|floatformat:0 }}
-                <span class="text-xs font-normal text-gray-400">so'm</span>
+            <p class="text-base font-bold text-gray-900 leading-tight">
+                {{ repair_in_progress }}
+                <span class="text-xs font-normal text-gray-400">ta</span>
             </p>
-            <p class="text-xs text-gray-400 mt-0.5">Sotilmagan mahsulotlar</p>
+            <p class="text-xs text-gray-400 mt-0.5">Ombordagi mahsulotlar</p>
         </a>
 
-        <!-- Sold with active warranty -->
+        <!-- Active warranties -->
         <a href="{% url 'main:warranty_history' %}" class="bg-white rounded-2xl px-4 py-4 shadow-sm col-span-1">
             <div class="flex items-center space-x-2 mb-2">
                 <div class="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -48,78 +48,35 @@
                 <span class="text-xs font-medium text-gray-500 leading-tight">Faol kafolat</span>
             </div>
             <p class="text-base font-bold text-gray-900 leading-tight">
-                {{ sold_with_active_warranty }}
+                {{ warranty_active }}
                 <span class="text-xs font-normal text-gray-400">ta</span>
             </p>
-            <p class="text-xs text-gray-400 mt-0.5">Sotilgan mahsulotlar</p>
+            <p class="text-xs text-gray-400 mt-0.5">Kafolatli mahsulotlar</p>
         </a>
 
-        <!-- Total profit (full width) — tappable link to detail page -->
-        <a href="{% url 'main:profit_detail' %}"
-           class="block bg-white rounded-2xl px-4 py-4 shadow-sm col-span-2 active:bg-gray-50">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-xl {% if total_profit >= 0 %}bg-purple-100{% else %}bg-red-100{% endif %} flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 {% if total_profit >= 0 %}text-purple-600{% else %}text-red-500{% endif %}"
-                             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-xs font-medium text-gray-500">Umumiy foyda</p>
-                        <p class="text-xs text-gray-400">Tarixni ko'rish →</p>
-                    </div>
+        <!-- Total stats (full width) -->
+        <div class="bg-white rounded-2xl px-4 py-4 shadow-sm col-span-2">
+            <div class="flex items-center justify-around">
+                <div class="text-center">
+                    <p class="text-lg font-bold text-blue-600">{{ total_warranty_items }}</p>
+                    <p class="text-xs text-gray-400">Kafolat</p>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <div class="text-right">
-                        <p class="text-lg font-bold {% if total_profit >= 0 %}text-purple-600{% else %}text-red-500{% endif %}">
-                            {% if total_profit >= 0 %}+{% endif %}{{ total_profit|floatformat:0 }}
-                        </p>
-                        <p class="text-xs text-gray-400">so'm</p>
-                    </div>
-                    <svg class="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                    </svg>
+                <div class="w-px h-8 bg-gray-200"></div>
+                <div class="text-center">
+                    <p class="text-lg font-bold text-orange-600">{{ total_repair_items }}</p>
+                    <p class="text-xs text-gray-400">Ta'mirlash</p>
+                </div>
+                <div class="w-px h-8 bg-gray-200"></div>
+                <div class="text-center">
+                    <p class="text-lg font-bold text-green-600">{{ completed_repairs }}</p>
+                    <p class="text-xs text-gray-400">Yakunlangan</p>
                 </div>
             </div>
-        </a>
-
-        <!-- Total debt (full width) — shown only when there are debtors -->
-        {% if total_debt %}
-        <a href="{% url 'main:warranty_history' %}"
-           class="block bg-red-50 border border-red-200 rounded-2xl px-4 py-4 shadow-sm col-span-2 active:bg-red-100">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-xs font-semibold text-red-600">Umumiy qarz</p>
-                        <p class="text-xs text-red-400">{{ debt_count }} ta mijoz →</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <div class="text-right">
-                        
-                        
-                        <p class="text-lg font-bold text-red-500">{{ total_debt|floatformat:0 }}</p>
-                        <p class="text-xs text-red-400">so'm</p>
-                    </div>
-                    <svg class="w-4 h-4 text-red-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </div>
-            </div>
-        </a>
-        {% endif %}
+        </div>
 
     </div>
 
-    <!-- ── Product types CRUD ────────────────────────────────────────────── -->
+    <!-- Product types CRUD -->
     <div class="flex items-center justify-between px-1 pt-2">
         <h2 class="text-sm font-bold text-gray-700">Mahsulot turlari</h2>
         <a href="{% url 'main:product_type_create' %}"

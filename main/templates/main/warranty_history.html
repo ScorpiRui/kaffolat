@@ -3,72 +3,172 @@
 {% block title %}Tarix{% endblock %}
 
 {% block content %}
-<div class="space-y-3">
+<style>
+    .history-search-wrap {
+        display: flex;
+        align-items: center;
+        min-height: 3rem;
+        border-radius: 1rem;
+        background: #f3f4f6;
+    }
+    .history-search-wrap:focus-within {
+        box-shadow: 0 0 0 2px #d1d5db;
+    }
+    .history-search-wrap .history-search-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 2.75rem;
+        height: 3rem;
+        color: #9ca3af;
+    }
+    .history-search-wrap .history-search-icon svg {
+        display: block;
+    }
+    .history-search-wrap input.history-search-input {
+        flex: 1 1 0%;
+        min-width: 0;
+        height: 3rem;
+        margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        border: 0;
+        background: transparent;
+        padding: 0 1rem 0 0;
+        line-height: 3rem;
+        font-size: 16px !important;
+        color: #111827;
+        box-sizing: border-box;
+    }
+    .history-search-wrap input.history-search-input::placeholder {
+        color: #9ca3af;
+        line-height: 3rem;
+    }
+    .history-search-wrap input.history-search-input:focus {
+        outline: none;
+    }
+    .history-search-wrap input.history-search-input::-webkit-search-decoration,
+    .history-search-wrap input.history-search-input::-webkit-search-cancel-button,
+    .history-search-wrap input.history-search-input::-webkit-search-results-button {
+        display: none;
+        -webkit-appearance: none;
+    }
+</style>
+<div class="space-y-5 pb-2">
 
-    <h1 class="text-lg font-bold text-gray-900 px-1">Sotilgan mahsulotlar</h1>
+    <h1 class="text-2xl font-bold text-gray-900 tracking-tight px-0.5">Tarix</h1>
+
+    <form method="get" action="{% url 'main:warranty_history' %}" class="space-y-4">
+        <div class="history-search-wrap">
+            <span class="history-search-icon pointer-events-none" aria-hidden="true">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </span>
+            <input type="search" name="q" value="{{ search_q|default:'' }}"
+                   placeholder="Qidiruv"
+                   autocomplete="off"
+                   class="history-search-input">
+        </div>
+
+        <div>
+            <p class="text-sm font-medium text-gray-700 mb-2 px-0.5">Sana bo'yicha filter</p>
+            <div class="flex items-end gap-3">
+                <label class="flex-1 min-w-0">
+                    <span class="block text-xs text-gray-400 mb-1">dan</span>
+                    <input type="text" name="from" value="{{ date_from }}"
+                           placeholder="KK/OO/YYYY"
+                           inputmode="numeric"
+                           class="date-input-mask w-full rounded-xl bg-gray-100 px-3 py-2.5 text-sm text-gray-900
+                                  placeholder-gray-400 border-0 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                </label>
+                <label class="flex-1 min-w-0">
+                    <span class="block text-xs text-gray-400 mb-1">gacha</span>
+                    <input type="text" name="to" value="{{ date_to }}"
+                           placeholder="KK/OO/YYYY"
+                           inputmode="numeric"
+                           class="date-input-mask w-full rounded-xl bg-gray-100 px-3 py-2.5 text-sm text-gray-900
+                                  placeholder-gray-400 border-0 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                </label>
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit"
+                    class="flex-1 bg-gray-900 text-white text-sm font-semibold py-3 rounded-xl active:bg-gray-800">
+                Qo'llash
+            </button>
+            {% if search_q or date_from or date_to %}
+            <a href="{% url 'main:warranty_history' %}"
+               class="px-4 py-3 text-sm font-medium text-gray-500 border border-gray-200 rounded-xl active:bg-gray-50 flex items-center">
+                Tozalash
+            </a>
+            {% endif %}
+        </div>
+    </form>
 
     {% if items %}
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden divide-y divide-gray-100">
         {% for item in items %}
         <a href="{% url 'main:item_detail' item.pk %}"
-           class="block rounded-2xl px-4 py-4 shadow-sm active:bg-orange-50
-                  {% if item.debt_amount %}bg-red-50 border border-red-200{% else %}bg-white{% endif %}">
+           class="flex items-center gap-3 px-4 py-4 active:bg-gray-50">
 
-            <div class="flex items-center justify-between mb-1">
-                <p class="text-sm font-semibold text-gray-900 truncate mr-2">{{ item.display_name }}</p>
-
-                <div class="flex items-center space-x-1.5 flex-shrink-0">
-                    {% if item.debt_amount %}
-                    <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-red-100 text-red-600">
-                        Qarz: {{ item.debt_amount|floatformat:0 }}
-                    </span>
-                    {% endif %}
-                    {% if item.warranty_until_date or item.warranty_mileage %}
-                        <span class="text-xs px-2 py-0.5 rounded-full font-medium
-                            {% if item.warranty_is_valid %}bg-green-100 text-green-700
-                            {% else %}bg-red-100 text-red-600{% endif %}">
-                            {% if item.warranty_is_valid %}Kafolat{% else %}Muddati o'tgan{% endif %}
-                        </span>
-                    {% else %}
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                            Kafolatsiz
-                        </span>
-                    {% endif %}
-                </div>
+            <div class="min-w-0 flex-1 pr-1">
+                <p class="font-bold text-gray-900 text-base leading-snug">
+                    {{ item.display_name }}
+                </p>
+                <p class="text-sm text-gray-400 mt-1">
+                    {{ item.created_at|date:"d.m.Y" }} · {{ item.created_at|date:"H:i" }}
+                </p>
             </div>
 
-            <div class="flex items-center justify-between text-xs text-gray-400 mt-1">
-                <span>
-                    {% if item.client_phone %}
-                        📞 {{ item.client_phone }}
-                    {% endif %}
+            <div class="flex items-center gap-1 flex-shrink-0">
+                {% if item.is_warranty %}
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-red-50 text-red-500" title="Kafolat">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
                 </span>
-                <span>{{ item.purchase_date }}</span>
-            </div>
+                {% else %}
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-green-50 text-green-600" title="Ta'mirlash">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </span>
+                {% endif %}
 
-            {% if item.warranty_until_date %}
-            <div class="mt-2 text-xs text-gray-500">
-                Kafolat: {{ item.warranty_until_date }} gacha
-            </div>
-            {% endif %}
-            {% if item.warranty_mileage %}
-            <div class="mt-1 text-xs text-gray-500">
-                Yurish: {{ item.warranty_mileage }} {{ item.mileage_unit }}
-            </div>
-            {% endif %}
-
-        </a>
-        {% endfor %}
-    {% else %}
-        <div class="bg-white rounded-2xl p-10 text-center shadow-sm">
-            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <svg class="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                 </svg>
             </div>
-            <p class="text-sm font-medium text-gray-400">Hozircha sotilgan mahsulot yo'q</p>
-            <p class="text-xs text-gray-300 mt-1">Mijoz telefoni kiritilgan mahsulotlar bu yerda ko'rinadi</p>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl p-12 text-center shadow-sm">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
         </div>
+        <p class="text-sm font-semibold text-gray-600">
+            {% if search_q or date_from or date_to %}
+                Natija topilmadi
+            {% else %}
+                Hozircha tarix yo'q
+            {% endif %}
+        </p>
+        <p class="text-xs text-gray-400 mt-1 px-4">
+            {% if search_q or date_from or date_to %}
+                Boshqa so'z yoki sana oralig'ini sinab ko'ring
+            {% else %}
+                Kafolat va yakunlangan ta'mirlar bu yerda ko'rinadi
+            {% endif %}
+        </p>
+    </div>
     {% endif %}
 
 </div>

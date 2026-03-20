@@ -34,6 +34,13 @@ class ProductType(models.Model):
 
 
 class QrItem(models.Model):
+    TYPE_WARRANTY = "warranty"
+    TYPE_REPAIR = "repair"
+    TYPE_CHOICES = [
+        (TYPE_WARRANTY, "Kafolat"),
+        (TYPE_REPAIR, "Ta'mirlash"),
+    ]
+
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="items")
     product_type = models.ForeignKey(
         ProductType,
@@ -43,10 +50,14 @@ class QrItem(models.Model):
         related_name="items",
     )
     qr_id = models.CharField(max_length=128, unique=True)
+    item_type = models.CharField(max_length=16, choices=TYPE_CHOICES, default=TYPE_WARRANTY)
     custom_name = models.CharField(max_length=255, blank=True)
     custom_description = models.TextField(blank=True)
     buy_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     sold_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    repair_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    repair_deadline = models.DateField(null=True, blank=True)
+    is_completed = models.BooleanField(default=False)
     purchase_date = models.DateField(default=timezone.now)
     client_phone = models.CharField(max_length=32, blank=True)
     warranty_until_date = models.DateField(null=True, blank=True)
@@ -75,17 +86,27 @@ class QrItem(models.Model):
             return False
         return True
 
+    @property
+    def is_warranty(self):
+        return self.item_type == self.TYPE_WARRANTY
+
+    @property
+    def is_repair(self):
+        return self.item_type == self.TYPE_REPAIR
+
 
 class WarehouseRecord(models.Model):
     ACTION_CREATED = "created"
     ACTION_UPDATED = "updated"
     ACTION_WARRANTY_CHECK = "warranty_check"
     ACTION_REVERTED = "reverted"
+    ACTION_COMPLETED = "completed"
     ACTION_CHOICES = [
         (ACTION_CREATED, "Created"),
         (ACTION_UPDATED, "Updated"),
         (ACTION_WARRANTY_CHECK, "Warranty check"),
         (ACTION_REVERTED, "Reverted"),
+        (ACTION_COMPLETED, "Completed"),
     ]
 
     item = models.ForeignKey(QrItem, on_delete=models.CASCADE, related_name="history")
@@ -98,4 +119,3 @@ class WarehouseRecord(models.Model):
 
     def __str__(self) -> str:
         return f"{self.item.display_name} - {self.action}"
-

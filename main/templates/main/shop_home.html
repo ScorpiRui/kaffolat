@@ -8,44 +8,36 @@
 {% block content %}
 
 <style>
-@keyframes barcode-scan {
-    0%, 100% { top: 8%; }
-    50%       { top: 78%; }
+@keyframes qr-pulse {
+    0%, 100% { opacity: 0.6; }
+    50%      { opacity: 1; }
 }
-.scan-line {
-    position: absolute;
-    left: 6px; right: 6px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #f87171, #ef4444, #f87171, transparent);
-    border-radius: 2px;
-    animation: barcode-scan 1.6s ease-in-out infinite;
-    box-shadow: 0 0 6px rgba(239,68,68,0.7);
+.qr-pulse {
+    animation: qr-pulse 2s ease-in-out infinite;
 }
 </style>
 
-<!-- ── Normal scanner UI ─────────────────────────────────────────────────── -->
 <div id="normalView" class="flex flex-col items-center" style="min-height: calc(100vh - 200px);">
 
-    <!-- Instruction text -->
     <div class="text-center mt-6 mb-5 px-6">
         <p id="instructionText" class="text-gray-800 font-semibold text-xl leading-snug">
-            Ma'lumotlarni ko'rish uchun<br>QR kodni skanerlang!
+            QR kodni skanerlang!
         </p>
     </div>
 
-    <!-- Mode toggle -->
-    <div class="flex bg-gray-200 rounded-full p-1 mb-8" style="width:230px;">
-        <button id="modeQr"
+    <!-- Mode toggle: Kafolat / Ta'mirlash -->
+    <div class="flex bg-gray-200 rounded-full p-1 mb-8" style="width:260px;">
+        <button id="modeWarranty"
                 class="flex-1 py-2 rounded-full text-sm font-semibold bg-white shadow text-gray-900">
-            QR kod
+            Kafolat
         </button>
-        <button id="modeBarcode"
+        <button id="modeRepair"
                 class="flex-1 py-2 rounded-full text-sm font-semibold text-gray-400">
-            Barkod / IMEI
+            Ta'mirlash
         </button>
     </div>
 
-    <!-- Static viewfinder (camera off) -->
+    <!-- Static viewfinder -->
     <div class="relative" style="width:270px; height:270px;">
         <div class="absolute inset-0 rounded-2xl" style="background:rgba(200,200,220,0.25);"></div>
         <div class="absolute top-0 left-0 w-10 h-10"
@@ -60,12 +52,12 @@
             <button id="scanBtn"
                     class="bg-blue-500 text-white font-semibold rounded-full px-7 py-3
                            text-sm shadow-lg active:bg-blue-600">
-                <span id="scanBtnLabel">QR code ni ishga tushuring</span>
+                <span id="scanBtnLabel">QR kodni skanerlash</span>
             </button>
         </div>
     </div>
 
-    <!-- Qo'lda kiriting -->
+    <!-- Manual input -->
     <div class="mt-auto pt-10 pb-2 w-full px-4">
         <button id="manualBtn"
                 class="bg-white text-blue-600 font-semibold rounded-full px-6 py-2.5
@@ -74,28 +66,26 @@
         </button>
     </div>
 
-    <!-- Manual input panel -->
     <div id="manualPanel" class="hidden w-full px-4 pb-6">
         <form id="qrForm" class="flex items-stretch space-x-2">
-            <input id="qrInput" type="text" placeholder="QR-00123 yoki IMEI" required
+            <input id="qrInput" type="text" placeholder="QR kod" required
                    class="flex-1 min-w-0 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900
                           bg-white shadow-sm placeholder-gray-400
                           focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button type="submit"
                     class="bg-blue-600 text-white w-14 rounded-2xl font-bold text-xl
                            shadow-sm active:bg-blue-700 flex-shrink-0 flex items-center justify-center">
-                →
+                &rarr;
             </button>
         </form>
     </div>
 </div>
 
-<!-- ── Full-screen camera overlay ───────────────────────────────────────── -->
+<!-- Full-screen camera overlay -->
 <div id="cameraOverlay"
      class="hidden fixed inset-0 z-50"
      style="background:#000;">
 
-    <!-- Full-screen video -->
     <video id="video" autoplay playsinline muted
            class="absolute inset-0 w-full h-full object-cover"></video>
     <canvas id="canvas" class="hidden"></canvas>
@@ -106,7 +96,7 @@
                 transparent 0%, rgba(0,0,0,0.58) 100%);">
     </div>
 
-    <!-- ── QR frame: square ──────────────────────────────────────────── -->
+    <!-- QR frame -->
     <div id="qrFrame"
          class="absolute inset-0 flex items-center justify-center pointer-events-none"
          style="padding-bottom:80px;">
@@ -122,32 +112,13 @@
         </div>
     </div>
 
-    <!-- ── Barcode frame: wide rectangle + animated scan line ─────── -->
-    <div id="barcodeFrame"
-         class="hidden absolute inset-0 flex items-center justify-center pointer-events-none"
-         style="padding-bottom:80px;">
-        <div class="relative" style="width:310px;height:110px;">
-            <!-- Corners -->
-            <div class="absolute top-0 left-0 w-8 h-8"
-                 style="border-top:4px solid #ef4444;border-left:4px solid #ef4444;border-radius:8px 0 0 0;"></div>
-            <div class="absolute top-0 right-0 w-8 h-8"
-                 style="border-top:4px solid #ef4444;border-right:4px solid #ef4444;border-radius:0 8px 0 0;"></div>
-            <div class="absolute bottom-0 left-0 w-8 h-8"
-                 style="border-bottom:4px solid #ef4444;border-left:4px solid #ef4444;border-radius:0 0 0 8px;"></div>
-            <div class="absolute bottom-0 right-0 w-8 h-8"
-                 style="border-bottom:4px solid #ef4444;border-right:4px solid #ef4444;border-radius:0 0 8px 0;"></div>
-            <!-- Animated scan line -->
-            <div class="scan-line"></div>
-        </div>
-    </div>
-
-    <!-- Mode indicator pill — also offset by safe area -->
+    <!-- Mode indicator pill -->
     <div id="overlayModeLabel"
          class="absolute left-5 text-xs font-semibold text-white rounded-full px-3 py-1.5"
          style="top: calc(env(safe-area-inset-top, 0px) + 16px);
                 left: calc(env(safe-area-inset-left, 0px) + 20px);
                 background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);">
-        QR kod
+        Kafolat
     </div>
 
     <!-- Hint text -->
@@ -157,7 +128,7 @@
         QR kodni ramkaga yo'naltiring
     </div>
 
-    <!-- Close button — offset by OS safe area so it clears notch/Dynamic Island -->
+    <!-- Close button -->
     <button id="stopBtn"
             class="absolute right-5 bg-black bg-opacity-40 text-white
                    rounded-full p-3 active:bg-opacity-70"
@@ -170,271 +141,96 @@
     </button>
 </div>
 
-<!-- jsQR (for QR mode) -->
+<!-- jsQR -->
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 (function () {
-    // ── State ─────────────────────────────────────────────────────────────
-    let mode        = 'qr';   // 'qr' | 'barcode'
-    let stream      = null;
-    let raf         = null;
-    let zxingReader = null;
-    let zxingLoaded = false;
+    var mode = 'warranty';
+    var stream = null;
+    var raf = null;
 
-    // ── DOM refs ──────────────────────────────────────────────────────────
-    const scanBtn        = document.getElementById('scanBtn');
-    const scanBtnLabel   = document.getElementById('scanBtnLabel');
-    const stopBtn        = document.getElementById('stopBtn');
-    const video          = document.getElementById('video');
-    const canvas         = document.getElementById('canvas');
-    const cameraOverlay  = document.getElementById('cameraOverlay');
-    const manualBtn      = document.getElementById('manualBtn');
-    const manualPanel    = document.getElementById('manualPanel');
-    const qrForm         = document.getElementById('qrForm');
-    const qrInput        = document.getElementById('qrInput');
-    const modeQrBtn      = document.getElementById('modeQr');
-    const modeBarcodeBtn = document.getElementById('modeBarcode');
-    const instructionTxt = document.getElementById('instructionText');
-    const qrFrame        = document.getElementById('qrFrame');
-    const barcodeFrame   = document.getElementById('barcodeFrame');
-    const hintText       = document.getElementById('hintText');
-    const overlayLabel   = document.getElementById('overlayModeLabel');
+    var scanBtn        = document.getElementById('scanBtn');
+    var scanBtnLabel   = document.getElementById('scanBtnLabel');
+    var stopBtn        = document.getElementById('stopBtn');
+    var video          = document.getElementById('video');
+    var canvas         = document.getElementById('canvas');
+    var cameraOverlay  = document.getElementById('cameraOverlay');
+    var manualBtn      = document.getElementById('manualBtn');
+    var manualPanel    = document.getElementById('manualPanel');
+    var qrForm         = document.getElementById('qrForm');
+    var qrInput        = document.getElementById('qrInput');
+    var modeWarrantyBtn = document.getElementById('modeWarranty');
+    var modeRepairBtn   = document.getElementById('modeRepair');
+    var instructionTxt  = document.getElementById('instructionText');
+    var hintText        = document.getElementById('hintText');
+    var overlayLabel    = document.getElementById('overlayModeLabel');
 
-    // ── Mode toggle ───────────────────────────────────────────────────────
     function setMode(m) {
         mode = m;
-        const isQr = m === 'qr';
+        var isW = m === 'warranty';
 
-        modeQrBtn.classList.toggle('bg-white',       isQr);
-        modeQrBtn.classList.toggle('shadow',          isQr);
-        modeQrBtn.classList.toggle('text-gray-900',   isQr);
-        modeQrBtn.classList.toggle('text-gray-400',  !isQr);
+        modeWarrantyBtn.classList.toggle('bg-white', isW);
+        modeWarrantyBtn.classList.toggle('shadow', isW);
+        modeWarrantyBtn.classList.toggle('text-gray-900', isW);
+        modeWarrantyBtn.classList.toggle('text-gray-400', !isW);
 
-        modeBarcodeBtn.classList.toggle('bg-white',      !isQr);
-        modeBarcodeBtn.classList.toggle('shadow',         !isQr);
-        modeBarcodeBtn.classList.toggle('text-gray-900',  !isQr);
-        modeBarcodeBtn.classList.toggle('text-gray-400',   isQr);
+        modeRepairBtn.classList.toggle('bg-white', !isW);
+        modeRepairBtn.classList.toggle('shadow', !isW);
+        modeRepairBtn.classList.toggle('text-gray-900', !isW);
+        modeRepairBtn.classList.toggle('text-gray-400', isW);
 
-        if (isQr) {
-            instructionTxt.innerHTML  = "Ma'lumotlarni ko'rish uchun<br>QR kodni skanerlang!";
-            scanBtnLabel.textContent  = "QR code ni ishga tushuring";
-            qrFrame.classList.remove('hidden');
-            barcodeFrame.classList.add('hidden');
-            hintText.textContent      = "QR kodni ramkaga yo'naltiring";
-            overlayLabel.textContent  = "QR kod";
+        if (isW) {
+            instructionTxt.innerHTML = "Kafolat uchun<br>QR kodni skanerlang!";
+            overlayLabel.textContent = "Kafolat";
         } else {
-            instructionTxt.innerHTML  = "IMEI yoki barkodni<br>skanerlang!";
-            scanBtnLabel.textContent  = "Barkodni ishga tushuring";
-            qrFrame.classList.add('hidden');
-            barcodeFrame.classList.remove('hidden');
-            hintText.textContent      = "Barkodni gorizontal ramkaga yo'naltiring";
-            overlayLabel.textContent  = "Barkod / IMEI";
+            instructionTxt.innerHTML = "Ta'mirlash uchun<br>QR kodni skanerlang!";
+            overlayLabel.textContent = "Ta'mirlash";
         }
     }
 
-    // ── Redirect ──────────────────────────────────────────────────────────
     function redirectToQr(code) {
         try {
-            const url = new URL(code);
-            const id = url.searchParams.get('id');
+            var url = new URL(code);
+            var id = url.searchParams.get('id');
             if (id) code = id;
         } catch (_) {}
-        window.location.href = "{% url 'main:qr_handler' 'PLACEHOLDER' %}"
-            .replace('PLACEHOLDER', encodeURIComponent(code));
+        var base = "{% url 'main:qr_handler' 'PLACEHOLDER' %}".replace('PLACEHOLDER', encodeURIComponent(code));
+        window.location.href = base + '?mode=' + mode;
     }
 
-    // ── QR decode loop (jsQR) ─────────────────────────────────────────────
     function tick() {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width  = video.videoWidth;
+            canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
+            var ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+            var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
             if (code) { stopCamera(); redirectToQr(code.data); return; }
         }
         raf = requestAnimationFrame(tick);
     }
 
-    // ── Stop everything ───────────────────────────────────────────────────
     function stopCamera() {
-        if (raf)    { cancelAnimationFrame(raf); raf = null; }
-        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-        // ZXing reader is stateless in our setup (we own the stream); just discard.
-        zxingReader = null;
+        if (raf) { cancelAnimationFrame(raf); raf = null; }
+        if (stream) { stream.getTracks().forEach(function(t) { t.stop(); }); stream = null; }
         cameraOverlay.classList.add('hidden');
         document.body.style.overflow = '';
     }
 
-    // ── Load ZXing lazily (fallback for older devices) ────────────────────
-    function loadZxing() {
-        if (zxingLoaded) return Promise.resolve();
-        return new Promise(function (resolve, reject) {
-            const s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js';
-            s.onload  = function () { zxingLoaded = true; resolve(); };
-            s.onerror = reject;
-            document.head.appendChild(s);
-        });
-    }
-
-    // ── Acquire camera stream with continuous autofocus ───────────────────
-    async function acquireCameraStream() {
-        const s = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: 'environment',
-                width:  { ideal: 1280 },
-                height: { ideal: 720 },
-            }
-        });
-        // Request continuous autofocus so the lens re-focuses for close-up barcodes
-        const track = s.getVideoTracks()[0];
-        if (track) {
-            try {
-                const caps = track.getCapabilities ? track.getCapabilities() : {};
-                const modes = caps.focusMode || [];
-                if (modes.includes('continuous')) {
-                    await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-                } else if (modes.includes('auto')) {
-                    await track.applyConstraints({ advanced: [{ focusMode: 'auto' }] });
-                }
-            } catch (_) {}
-        }
-        return s;
-    }
-
-    // ── Telegram safe area → position overlay UI below its native chrome ──
     function applyOverlaySafeArea() {
-        const tg  = window.Telegram?.WebApp;
-        const top = (tg?.safeAreaInset?.top        || 0)
-                  + (tg?.contentSafeAreaInset?.top  || 0)
-                  + 16;   // 16 px breathing room
-        stopBtn.style.top      = top + 'px';
+        var tg = window.Telegram && window.Telegram.WebApp;
+        var top = ((tg && tg.safeAreaInset && tg.safeAreaInset.top) || 0)
+                + ((tg && tg.contentSafeAreaInset && tg.contentSafeAreaInset.top) || 0)
+                + 16;
+        stopBtn.style.top = top + 'px';
         overlayLabel.style.top = top + 'px';
-        stopBtn.style.right      = ((tg?.safeAreaInset?.right || 0) + 20) + 'px';
-        overlayLabel.style.left  = ((tg?.safeAreaInset?.left  || 0) + 20) + 'px';
+        stopBtn.style.right = (((tg && tg.safeAreaInset && tg.safeAreaInset.right) || 0) + 20) + 'px';
+        overlayLabel.style.left = (((tg && tg.safeAreaInset && tg.safeAreaInset.left) || 0) + 20) + 'px';
     }
 
-    // ── Compute the video-pixel crop region for the barcode frame ─────────
-    // The barcode frame (310 × 110 CSS px) is centred horizontally and
-    // vertically within (screenH − 80 px) because of padding-bottom:80px.
-    function getBarcodeCrop() {
-        const screenW = window.innerWidth;
-        const screenH = window.innerHeight;
-        const vW = video.videoWidth;
-        const vH = video.videoHeight;
-        if (!vW || !vH) return null;
-
-        // object-cover scale & offsets (in CSS px)
-        const scale   = Math.max(screenW / vW, screenH / vH);
-        const offX    = (vW * scale - screenW) / 2;  // CSS px cropped each side
-        const offY    = (vH * scale - screenH) / 2;
-
-        // Barcode frame bounds in CSS px (add ±24 px margin for reliability)
-        const frameW  = 310 + 48;
-        const frameH  = 110 + 48;
-        const sx = (screenW - frameW) / 2;
-        const sy = (screenH - 80) / 2 - frameH / 2;
-
-        // Map to video pixels
-        const cropX = Math.max(0, Math.round((sx + offX) / scale));
-        const cropY = Math.max(0, Math.round((sy + offY) / scale));
-        const cropW = Math.min(vW - cropX, Math.round(frameW / scale));
-        const cropH = Math.min(vH - cropY, Math.round(frameH / scale));
-        return { cropX, cropY, cropW, cropH };
-    }
-
-    // ── Reusable off-screen canvas for barcode crop ───────────────────────
-    const cropCanvas = document.createElement('canvas');
-
-    // ── Start barcode camera ──────────────────────────────────────────────
-    // Uses native BarcodeDetector (Chrome/Android WebView) when available;
-    // falls back to ZXing canvas decode for older devices.
-    // Scans ONLY the region inside the red frame rectangle.
-    async function startBarcodeCamera() {
-        // Decide decoder upfront
-        let useNative = false;
-        let barcodeDetector = null;
-        if ('BarcodeDetector' in window) {
-            try {
-                barcodeDetector = new BarcodeDetector({
-                    formats: ['code_128','ean_13','ean_8','code_39','codabar','itf','upc_a','upc_e','data_matrix','pdf417']
-                });
-                useNative = true;
-            } catch (_) {}
-        }
-        if (!useNative) {
-            try { await loadZxing(); } catch (_) {
-                alert("Kutubxona yuklanmadi. Internet aloqasini tekshiring.");
-                return;
-            }
-            zxingReader = new ZXing.BrowserMultiFormatReader();
-        }
-
-        // Acquire camera
-        try {
-            stream = await acquireCameraStream();
-        } catch (_) {
-            alert("Kamera ochib bo'lmadi.");
-            return;
-        }
-        video.srcObject = stream;
-        await video.play();
-        cameraOverlay.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-
-        // Push our buttons below Telegram's native chrome
-        applyOverlaySafeArea();
-
-        // Decode loop — only reads pixels inside the barcode frame
-        let detecting = false;
-        async function tickBarcode() {
-            if (!detecting && video.readyState >= 2) {
-                detecting = true;
-                try {
-                    const crop = getBarcodeCrop();
-                    if (crop) {
-                        const { cropX, cropY, cropW, cropH } = crop;
-                        cropCanvas.width  = cropW;
-                        cropCanvas.height = cropH;
-                        cropCanvas.getContext('2d')
-                            .drawImage(video, cropX, cropY, cropW, cropH,
-                                              0,     0,     cropW, cropH);
-
-                        if (useNative) {
-                            const found = await barcodeDetector.detect(cropCanvas);
-                            if (found.length > 0) {
-                                stopCamera();
-                                redirectToQr(found[0].rawValue);
-                                return;
-                            }
-                        } else {
-                            try {
-                                const result = zxingReader.decodeFromCanvas(cropCanvas);
-                                stopCamera();
-                                redirectToQr(result.getText());
-                                return;
-                            } catch (_) { /* NotFoundException – keep scanning */ }
-                        }
-                    }
-                } catch (_) {}
-                detecting = false;
-            }
-            raf = requestAnimationFrame(tickBarcode);
-        }
-        raf = requestAnimationFrame(tickBarcode);
-    }
-
-    // ── Start camera (dispatches by mode) ─────────────────────────────────
     async function startCamera() {
-        if (mode === 'barcode') {
-            await startBarcodeCamera();
-            return;
-        }
-
-        // QR mode — use Telegram native popup when available
-        if (window.Telegram?.WebApp?.showScanQrPopup) {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showScanQrPopup) {
             Telegram.WebApp.showScanQrPopup({}, function (text) {
                 Telegram.WebApp.closeScanQrPopup();
                 redirectToQr(text);
@@ -442,9 +238,26 @@
             return;
         }
 
-        // QR mode — web camera + jsQR
         try {
-            stream = await acquireCameraStream();
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                }
+            });
+            var track = stream.getVideoTracks()[0];
+            if (track) {
+                try {
+                    var caps = track.getCapabilities ? track.getCapabilities() : {};
+                    var modes = caps.focusMode || [];
+                    if (modes.includes('continuous')) {
+                        await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+                    } else if (modes.includes('auto')) {
+                        await track.applyConstraints({ advanced: [{ focusMode: 'auto' }] });
+                    }
+                } catch (_) {}
+            }
             video.srcObject = stream;
             await video.play();
             cameraOverlay.classList.remove('hidden');
@@ -452,16 +265,15 @@
             applyOverlaySafeArea();
             raf = requestAnimationFrame(tick);
         } catch (_) {
-            // Fallback: file picker
-            const inp = document.createElement('input');
+            var inp = document.createElement('input');
             inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
             inp.onchange = async function (e) {
-                const file = e.target.files[0]; if (!file) return;
-                const bmp = await createImageBitmap(file);
-                const off = new OffscreenCanvas(bmp.width, bmp.height);
-                const ctx = off.getContext('2d'); ctx.drawImage(bmp, 0, 0);
-                const img  = ctx.getImageData(0, 0, bmp.width, bmp.height);
-                const code = jsQR(img.data, img.width, img.height);
+                var file = e.target.files[0]; if (!file) return;
+                var bmp = await createImageBitmap(file);
+                var off = new OffscreenCanvas(bmp.width, bmp.height);
+                var ctx = off.getContext('2d'); ctx.drawImage(bmp, 0, 0);
+                var img = ctx.getImageData(0, 0, bmp.width, bmp.height);
+                var code = jsQR(img.data, img.width, img.height);
                 if (code) redirectToQr(code.data);
                 else alert("QR kod topilmadi.");
             };
@@ -469,20 +281,18 @@
         }
     }
 
-    // ── Event listeners ───────────────────────────────────────────────────
-    // Re-apply safe area offsets whenever Telegram's chrome changes
     (function () {
-        const tg = window.Telegram?.WebApp;
+        var tg = window.Telegram && window.Telegram.WebApp;
         if (tg) {
-            tg.onEvent('safeAreaChanged',        applyOverlaySafeArea);
+            tg.onEvent('safeAreaChanged', applyOverlaySafeArea);
             tg.onEvent('contentSafeAreaChanged', applyOverlaySafeArea);
         }
     })();
 
-    modeQrBtn.addEventListener('click',      function () { setMode('qr'); });
-    modeBarcodeBtn.addEventListener('click', function () { setMode('barcode'); });
-    scanBtn.addEventListener('click',        startCamera);
-    stopBtn.addEventListener('click',        stopCamera);
+    modeWarrantyBtn.addEventListener('click', function () { setMode('warranty'); });
+    modeRepairBtn.addEventListener('click', function () { setMode('repair'); });
+    scanBtn.addEventListener('click', startCamera);
+    stopBtn.addEventListener('click', stopCamera);
 
     manualBtn.addEventListener('click', function () {
         manualPanel.classList.toggle('hidden');
@@ -491,7 +301,7 @@
 
     qrForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        const val = qrInput.value.trim();
+        var val = qrInput.value.trim();
         if (val) redirectToQr(val);
     });
 })();
