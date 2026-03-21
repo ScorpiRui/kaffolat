@@ -16,7 +16,6 @@ urlpatterns = [
     path("item/<int:pk>/", views.item_detail, name="item_detail"),
     path("item/<int:pk>/edit/", views.item_edit, name="item_edit"),
     path("item/<int:pk>/complete/", views.complete_repair, name="complete_repair"),
-    path("item/<int:pk>/revert/", views.revert_complete, name="revert_complete"),
     path("history/", views.warranty_history, name="warranty_history"),
     path("profile/", views.shop_profile, name="shop_profile"),
     path("p/<str:qr_id>/", views.public_item_detail, name="public_item_detail"),

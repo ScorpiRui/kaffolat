@@ -77,7 +77,7 @@
             <!-- Sell price (warranty) -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Sotuv narxi
+                     Narxi
                 </label>
                 {{ form.sold_price }}
                 {% for e in form.sold_price.errors %}
@@ -86,29 +86,7 @@
             </div>
             {% endif %}
 
-            {% if mode == "repair" %}
-            <!-- Repair price -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Ta'mirlash narxi <span class="text-gray-300 font-normal normal-case">(ixtiyoriy)</span>
-                </label>
-                {{ form.repair_price }}
-                {% for e in form.repair_price.errors %}
-                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
-                {% endfor %}
-            </div>
 
-            <!-- Repair deadline -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Tayyor bo'lish sanasi <span class="text-gray-300 font-normal normal-case">(ixtiyoriy)</span>
-                </label>
-                {{ form.repair_deadline }}
-                {% for e in form.repair_deadline.errors %}
-                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
 
             <!-- Phone -->
             <div>
@@ -121,23 +99,45 @@
                 {% endfor %}
             </div>
 
+            {% if mode == "warranty" %}
             <!-- Warranty date -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Kafolat muddati
                 </label>
                 <input type="hidden" name="warranty_until_date" id="warrantyDateInput">
-                <div class="flex flex-wrap gap-2">
-                    {% for label, days in warranty_presets %}
-                    <button type="button" data-days="{{ days }}"
-                            onclick="selectWarrantyPreset(this,'warrantyDateInput','warrantyPresetLabel')"
-                            class="warranty-preset px-3 py-1.5 rounded-full border border-gray-200 text-xs font-medium text-gray-600 bg-white active:bg-green-50">
-                        {{ label }}
-                    </button>
-                    {% endfor %}
-                </div>
+                <select id="warrantySelect"
+                        style="font-size:16px;width:100%;border-radius:12px;background:#fff;border:1px solid #e5e7eb;padding:12px 16px;color:#111827;outline:none;">
+                    <option value="">Tanlang...</option>
+                    <option value="3">3 kun</option>
+                    <option value="7">7 kun</option>
+                    <option value="15">15 kun</option>
+                    <option value="30">1 oy</option>
+                    <option value="90">3 oy</option>
+                    <option value="180">6 oy</option>
+                    <option value="365">1 yil</option>
+                </select>
                 <p id="warrantyPresetLabel" class="text-xs text-green-600 mt-1.5 hidden"></p>
             </div>
+            <script>
+            (function(){
+                var sel = document.getElementById('warrantySelect');
+                var inp = document.getElementById('warrantyDateInput');
+                var lbl = document.getElementById('warrantyPresetLabel');
+                sel.addEventListener('change', function(){
+                    var days = parseInt(sel.value, 10);
+                    if (!days) { inp.value = ''; lbl.classList.add('hidden'); return; }
+                    var d = new Date();
+                    d.setDate(d.getDate() + days);
+                    var dd = String(d.getDate()).padStart(2,'0');
+                    var mm = String(d.getMonth()+1).padStart(2,'0');
+                    var yyyy = d.getFullYear();
+                    inp.value = dd+'/'+mm+'/'+yyyy;
+                    lbl.textContent = dd+'/'+mm+'/'+yyyy+' gacha';
+                    lbl.classList.remove('hidden');
+                });
+            })();
+            </script>
 
             {% if shop.warranty_mileage_enabled %}
             <!-- Warranty mileage (unit is always km) -->
@@ -151,9 +151,10 @@
                 </div>
             </div>
             {% endif %}
+            {% endif %}
 
             <button type="submit"
-                    class="w-full {% if mode == 'repair' %}bg-blue-500 active:bg-blue-600{% else %}bg-green-500 active:bg-green-600{% endif %} text-white font-semibold py-3.5 rounded-xl mt-2">
+                    class="w-full {% if mode == 'repair' %}bg-gray-900 active:bg-black{% else %}bg-gray-900 active:bg-black{% endif %} text-white font-semibold py-3.5 rounded-xl mt-2">
                 {% if mode == "repair" %}Omborga saqlash{% else %}Sotish{% endif %}
             </button>
         </form>

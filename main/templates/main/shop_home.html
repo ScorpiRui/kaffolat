@@ -8,6 +8,13 @@
 {% block content %}
 
 <style>
+html.scanner-page, .scanner-page body {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none;
+}
 @keyframes qr-pulse {
     0%, 100% { opacity: 0.6; }
     50%      { opacity: 1; }
@@ -17,23 +24,24 @@
 }
 </style>
 
-<div id="normalView" class="flex flex-col items-center justify-center" style="min-height: calc(100vh - 200px);">
+<script>document.documentElement.classList.add('scanner-page');</script>
+<div id="normalView" class="flex flex-col items-center justify-center" style="height: calc(100vh - 170px); overflow:hidden;">
 
     <!-- Static viewfinder -->
     <div class="relative" style="width:270px; height:270px;">
-        <div class="absolute inset-0 rounded-2xl" style="background:rgba(200,200,220,0.25);"></div>
+        <div class="absolute inset-0 rounded-2xl" style="background:rgba(255,255,255,0.12);"></div>
         <div class="absolute top-0 left-0 w-10 h-10"
-             style="border-top:4px solid #3B82F6;border-left:4px solid #3B82F6;border-radius:10px 0 0 0;"></div>
+             style="border-top:4px solid #ffffff;border-left:4px solid #ffffff;border-radius:10px 0 0 0;"></div>
         <div class="absolute top-0 right-0 w-10 h-10"
-             style="border-top:4px solid #3B82F6;border-right:4px solid #3B82F6;border-radius:0 10px 0 0;"></div>
+             style="border-top:4px solid #ffffff;border-right:4px solid #ffffff;border-radius:0 10px 0 0;"></div>
         <div class="absolute bottom-0 left-0 w-10 h-10"
-             style="border-bottom:4px solid #3B82F6;border-left:4px solid #3B82F6;border-radius:0 0 0 10px;"></div>
+             style="border-bottom:4px solid #ffffff;border-left:4px solid #ffffff;border-radius:0 0 0 10px;"></div>
         <div class="absolute bottom-0 right-0 w-10 h-10"
-             style="border-bottom:4px solid #3B82F6;border-right:4px solid #3B82F6;border-radius:0 0 10px 0;"></div>
+             style="border-bottom:4px solid #ffffff;border-right:4px solid #ffffff;border-radius:0 0 10px 0;"></div>
         <div class="absolute inset-0 flex items-center justify-center">
             <button id="scanBtn"
-                    class="bg-blue-500 text-white font-semibold rounded-full px-7 py-3
-                           text-sm shadow-lg active:bg-blue-600">
+                    class="text-white font-semibold rounded-full px-7 py-3
+                           text-sm  active:bg-black">
                 <span id="scanBtnLabel">QR kodni skanerlash</span>
             </button>
         </div>
@@ -42,7 +50,7 @@
     <!-- Mode toggle: Kafolat / Ta'mirlash (below viewfinder — UX flow) -->
     <div class="flex bg-gray-200 rounded-xl p-1 mt-8 mb-8" style="width:260px;">
         <button type="button" id="modeWarranty"
-                class="flex-1 py-2 rounded-lg text-sm font-semibold bg-white shadow text-gray-900">
+                class="flex-1 py-2 rounded-lg text-sm font-semibold bg-gray-900 text-white shadow">
             Kafolat
         </button>
         <button type="button" id="modeRepair"
@@ -134,14 +142,14 @@
         mode = m;
         var isW = m === 'warranty';
 
-        modeWarrantyBtn.classList.toggle('bg-white', isW);
+        modeWarrantyBtn.classList.toggle('bg-gray-900', isW);
+        modeWarrantyBtn.classList.toggle('text-white', isW);
         modeWarrantyBtn.classList.toggle('shadow', isW);
-        modeWarrantyBtn.classList.toggle('text-gray-900', isW);
         modeWarrantyBtn.classList.toggle('text-gray-400', !isW);
 
-        modeRepairBtn.classList.toggle('bg-white', !isW);
+        modeRepairBtn.classList.toggle('bg-gray-900', !isW);
+        modeRepairBtn.classList.toggle('text-white', !isW);
         modeRepairBtn.classList.toggle('shadow', !isW);
-        modeRepairBtn.classList.toggle('text-gray-900', !isW);
         modeRepairBtn.classList.toggle('text-gray-400', isW);
 
         if (overlayLabel) {

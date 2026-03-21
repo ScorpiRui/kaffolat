@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 
 from .forms import ProductTypeForm, RepairForm, ShopProfileForm, ShopRegistrationForm, WarrantySellForm
@@ -33,6 +34,7 @@ def shop_home(request):
 # New QR -> show appropriate form
 # Existing QR -> go to item detail
 
+@csrf_exempt
 @login_required
 def qr_handler(request, qr_id: str):
     shop = _get_shop_for_request(request)
@@ -144,6 +146,7 @@ def item_detail(request, pk: int):
 
 # -- Edit item (warehouse repair or history warranty / completed repair) --
 
+@csrf_exempt
 @login_required
 def item_edit(request, pk: int):
     shop = _get_shop_for_request(request)
@@ -203,11 +206,24 @@ def item_edit(request, pk: int):
 
 # -- Complete repair (mark repair as done) --
 
+@csrf_exempt
 @login_required
 def complete_repair(request, pk: int):
     shop = _get_shop_for_request(request)
     item = get_object_or_404(QrItem, pk=pk, shop=shop)
     if request.method == "POST" and item.is_repair and not item.is_completed:
+        repair_price = request.POST.get("repair_price", "").strip()
+        if repair_price:
+            try:
+                item.repair_price = float(repair_price)
+            except (ValueError, TypeError):
+                pass
+        warranty_date_str = request.POST.get("warranty_until_date", "").strip()
+        if warranty_date_str:
+            try:
+                item.warranty_until_date = datetime.strptime(warranty_date_str, "%d/%m/%Y").date()
+            except (ValueError, TypeError):
+                pass
         item.is_completed = True
         item.save()
         WarehouseRecord.objects.create(
@@ -220,6 +236,7 @@ def complete_repair(request, pk: int):
 
 # -- Revert completion (move back to warehouse) --
 
+@csrf_exempt
 @login_required
 def revert_complete(request, pk: int):
     shop = _get_shop_for_request(request)

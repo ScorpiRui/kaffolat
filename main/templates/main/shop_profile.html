@@ -3,6 +3,7 @@
 {% block title %}Sozlamalar{% endblock %}
 
 {% block content %}
+<style>body { background: #F3F4F6 !important; } #topBar { background: #fff !important; }</style>
 <div class="space-y-4">
 
 
@@ -22,17 +23,6 @@
         <form method="post" action="" enctype="multipart/form-data" class="space-y-4" novalidate>
             {% csrf_token %}
             {% for field in form.hidden_fields %}{{ field }}{% endfor %}
-
-            <!-- Do'kon nomi -->
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Do'kon nomi
-                </label>
-                {{ form.name }}
-                {% for e in form.name.errors %}
-                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
-                {% endfor %}
-            </div>
 
             <!-- Telefon -->
             <div>
@@ -67,7 +57,7 @@
                     {{ form.warranty_mileage_enabled }}
                     <span id="toggleTrack"
                           style="position:absolute;inset:0;border-radius:26px;
-                                 background:{% if form.warranty_mileage_enabled.value %}#2563EB{% else %}#D1D5DB{% endif %};
+                                 background:{% if form.warranty_mileage_enabled.value %}#111827{% else %}#D1D5DB{% endif %};
                                  transition:background 0.2s;pointer-events:none;">
                     </span>
                     <span id="toggleThumb"
@@ -93,7 +83,7 @@
                     cb.style.cursor = 'pointer';
                     cb.addEventListener('change', function(){
                         if(cb.checked){
-                            track.style.background = '#2563EB';
+                            track.style.background = '#111827';
                             thumb.style.left = '25px';
                         } else {
                             track.style.background = '#D1D5DB';
@@ -105,7 +95,7 @@
             </script>
 
             <button type="submit"
-                    class="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700">
+                    class="w-full bg-gray-900 text-white font-semibold py-3 rounded-xl active:bg-black">
                 Saqlash
             </button>
         </form>

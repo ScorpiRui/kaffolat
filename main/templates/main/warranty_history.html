@@ -3,13 +3,14 @@
 {% block title %}Tarix{% endblock %}
 
 {% block content %}
+<style>body { background: #F3F4F6 !important; } #topBar { background: #fff !important; }</style>
 <style>
     .history-search-wrap {
         display: flex;
         align-items: center;
         min-height: 3rem;
         border-radius: 1rem;
-        background: #f3f4f6;
+        background: #fff;
     }
     .history-search-wrap:focus-within {
         box-shadow: 0 0 0 2px #d1d5db;
@@ -81,7 +82,7 @@
                     <input type="text" name="from" value="{{ date_from }}"
                            placeholder="KK/OO/YYYY"
                            inputmode="numeric"
-                           class="date-input-mask w-full rounded-xl bg-gray-100 px-3 py-2.5 text-sm text-gray-900
+                           class="date-input-mask w-full rounded-xl bg-white px-3 py-2.5 text-sm text-gray-900
                                   placeholder-gray-400 border-0 focus:outline-none focus:ring-2 focus:ring-gray-300">
                 </label>
                 <label class="flex-1 min-w-0">
@@ -89,7 +90,7 @@
                     <input type="text" name="to" value="{{ date_to }}"
                            placeholder="KK/OO/YYYY"
                            inputmode="numeric"
-                           class="date-input-mask w-full rounded-xl bg-gray-100 px-3 py-2.5 text-sm text-gray-900
+                           class="date-input-mask w-full rounded-xl bg-white px-3 py-2.5 text-sm text-gray-900
                                   placeholder-gray-400 border-0 focus:outline-none focus:ring-2 focus:ring-gray-300">
                 </label>
             </div>

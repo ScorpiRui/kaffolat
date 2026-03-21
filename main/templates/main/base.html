@@ -3,21 +3,23 @@
 <head>
     <meta charset="utf-8">
     <title>{% block title %}Kaffolat{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ffffff">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        html { touch-action: manipulation; -ms-touch-action: manipulation; }
         input, select, textarea { font-size: 16px !important; }
-        body { background: #EEEDF4; }
+        body { background: #9ca3af; }
         .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 8px); }
         .nav-item { transition: color 0.15s; }
         .nav-item:active { opacity: 0.7; }
         .nav-active-icon {
-            background: #EEF2FF;
+            background: #F3F4F6;
             border-radius: 16px;
             padding: 8px 16px;
         }
@@ -31,15 +33,12 @@
 
 <div class="min-h-screen flex flex-col">
 
-    <!-- Floating header card (positioned below Telegram's top bar via safe area) -->
-    <div id="topBar" class="pt-4 pb-2 sticky z-20" style="top:0; background:#EEEDF4; padding-left:20px; padding-right:20px;">
-        <header class="bg-white shadow-sm flex items-center justify-center"
-                style="width:100%; max-width:390px; height:70px; border-radius:113px; padding:0 16px; opacity:1;">
-            <p class="font-bold text-gray-900 text-lg truncate leading-tight">
-                {% if shop %}{{ shop.name }}{% else %}Kaffolat{% endif %}
-            </p>
+    <!-- Top bar: full-width, squared, stuck to top -->
+    <div id="topBar" class="sticky z-20 bg-white shadow-sm"
+         style="top:0; width:100%; border-radius:0;">
+        <div id="topBarInner" class="flex items-center" style="height:70px; padding:0 16px;">
             {% block header_right %}{% endblock %}
-        </header>
+        </div>
     </div>
 
     <!-- Page content: clear bottom nav (flush) + safe area -->
@@ -56,7 +55,7 @@
             {% with active=request.resolver_match.url_name %}
             <a href="{% url 'main:shop_home' %}"
                class="nav-item flex-1 flex flex-col items-center justify-center gap-1
-                      {% if active == 'shop_home' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                      {% if active == 'shop_home' %}text-gray-900{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'shop_home' %}nav-active-icon{% endif %} flex items-center justify-center">
                     <svg class="nav-bottom-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -72,7 +71,7 @@
             <!-- Tarix -->
             <a href="{% url 'main:warranty_history' %}"
                class="nav-item flex-1 flex flex-col items-center justify-center gap-1
-                      {% if active == 'warranty_history' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                      {% if active == 'warranty_history' %}text-gray-900{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'warranty_history' %}nav-active-icon{% endif %} flex items-center justify-center">
                     <svg class="nav-bottom-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -85,7 +84,7 @@
             <!-- Ombor -->
             <a href="{% url 'main:warehouse_list' %}"
                class="nav-item flex-1 flex flex-col items-center justify-center gap-1
-                      {% if active == 'warehouse_list' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                      {% if active == 'warehouse_list' %}text-gray-900{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'warehouse_list' %}nav-active-icon{% endif %} flex items-center justify-center">
                     <svg class="nav-bottom-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -98,7 +97,7 @@
             <!-- Profil -->
             <a href="{% url 'main:shop_profile' %}"
                class="nav-item flex-1 flex flex-col items-center justify-center gap-1
-                      {% if active == 'shop_profile' %}text-blue-600{% else %}text-gray-400{% endif %}">
+                      {% if active == 'shop_profile' %}text-gray-900{% else %}text-gray-400{% endif %}">
                 <span class="{% if active == 'shop_profile' %}nav-active-icon{% endif %} flex items-center justify-center">
                     <svg class="nav-bottom-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -168,7 +167,7 @@ function selectWarrantyPreset(btn, inputId, labelId) {
         var safeTop = (tg.safeAreaInset?.top || 0);
         var contentTop = (tg.contentSafeAreaInset?.top || 0);
         var total = safeTop + contentTop;
-        topBar.style.paddingTop = (16 + total) + 'px';
+        topBar.style.paddingTop = total + 'px';
         topBar.style.top = '0';
     }
 
@@ -184,6 +183,12 @@ function selectWarrantyPreset(btn, inputId, labelId) {
         }
         if (typeof tg.requestFullscreen === 'function') {
             tg.requestFullscreen();
+        }
+        if (typeof tg.setHeaderColor === 'function') {
+            tg.setHeaderColor('#ffffff');
+        }
+        if (typeof tg.setBackgroundColor === 'function') {
+            tg.setBackgroundColor('#ffffff');
         }
         applyTopBarSafeArea();
         tg.onEvent('contentSafeAreaChanged', applyTopBarSafeArea);

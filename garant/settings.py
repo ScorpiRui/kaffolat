@@ -39,6 +39,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://kaffolat.uz',
     'https://www.kaffolat.uz',
     'https://shanta-shaglike-ceaselessly.ngrok-free.app',
+    'https://shanta-shaglike-ceaselessly.ngrok-free.dev',
     'https://web.telegram.org',
     'https://telegram.org',
     'https://t.me',
