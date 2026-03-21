@@ -27,17 +27,18 @@ html.scanner-page, .scanner-page body {
 <script>document.documentElement.classList.add('scanner-page');</script>
 <div id="normalView" class="flex flex-col items-center justify-center" style="height: calc(100vh - 170px); overflow:hidden;">
 
+    <div class="flex flex-col items-center" style="margin-bottom:100px;">
     <!-- Static viewfinder -->
-    <div class="relative" style="width:270px; height:270px;">
-        <div class="absolute inset-0 rounded-2xl" style="background:rgba(255,255,255,0.12);"></div>
-        <div class="absolute top-0 left-0 w-10 h-10"
-             style="border-top:4px solid #ffffff;border-left:4px solid #ffffff;border-radius:10px 0 0 0;"></div>
-        <div class="absolute top-0 right-0 w-10 h-10"
-             style="border-top:4px solid #ffffff;border-right:4px solid #ffffff;border-radius:0 10px 0 0;"></div>
-        <div class="absolute bottom-0 left-0 w-10 h-10"
-             style="border-bottom:4px solid #ffffff;border-left:4px solid #ffffff;border-radius:0 0 0 10px;"></div>
-        <div class="absolute bottom-0 right-0 w-10 h-10"
-             style="border-bottom:4px solid #ffffff;border-right:4px solid #ffffff;border-radius:0 0 10px 0;"></div>
+    <div class="relative" style="margin-bottom:20px; width:270px; height:270px;">
+        <div class="absolute inset-0 rounded-2xl"></div>
+        <div class="absolute top-0 left-0 w-20 h-20"
+             style="border-top:8px solid #ffffff;border-left:8px solid #ffffff;border-radius:34px 0 0 0;"></div>
+        <div class="absolute top-0 right-0 w-20 h-20"
+             style="border-top:8px solid #ffffff;border-right:8px solid #ffffff;border-radius:0 34px 0 0;"></div>
+        <div class="absolute bottom-0 left-0 w-20 h-20"
+             style="border-bottom:8px solid #ffffff;border-left:8px solid #ffffff;border-radius:0 0 0 34px;"></div>
+        <div class="absolute bottom-0 right-0 w-20 h-20"
+             style="border-bottom:8px solid #ffffff;border-right:8px solid #ffffff;border-radius:0 0 34px 0;"></div>
         <div class="absolute inset-0 flex items-center justify-center">
             <button id="scanBtn"
                     class="text-white font-semibold rounded-full px-7 py-3
@@ -48,7 +49,7 @@ html.scanner-page, .scanner-page body {
     </div>
 
     <!-- Mode toggle: Kafolat / Ta'mirlash (below viewfinder — UX flow) -->
-    <div class="flex bg-gray-200 rounded-xl p-1 mt-8 mb-8" style="width:260px;">
+    <div class="flex bg-gray-200 rounded-xl p-1 mt-5 mb-5" style="width:260px; margin-bottom:30px;">
         <button type="button" id="modeWarranty"
                 class="flex-1 py-2 rounded-lg text-sm font-semibold bg-gray-900 text-white shadow">
             Kafolat
@@ -57,6 +58,8 @@ html.scanner-page, .scanner-page body {
                 class="flex-1 py-2 rounded-lg text-sm font-semibold text-gray-400">
             Ta'mirlash
         </button>
+    </div>
+
     </div>
 
 </div>
@@ -79,16 +82,16 @@ html.scanner-page, .scanner-page body {
     <!-- QR frame -->
     <div id="qrFrame"
          class="absolute inset-0 flex items-center justify-center pointer-events-none"
-         style="padding-bottom:80px;">
-        <div class="relative" style="width:260px;height:260px;">
-            <div class="absolute top-0 left-0 w-12 h-12"
-                 style="border-top:4px solid #fff;border-left:4px solid #fff;border-radius:12px 0 0 0;"></div>
-            <div class="absolute top-0 right-0 w-12 h-12"
-                 style="border-top:4px solid #fff;border-right:4px solid #fff;border-radius:0 12px 0 0;"></div>
-            <div class="absolute bottom-0 left-0 w-12 h-12"
-                 style="border-bottom:4px solid #fff;border-left:4px solid #fff;border-radius:0 0 0 12px;"></div>
-            <div class="absolute bottom-0 right-0 w-12 h-12"
-                 style="border-bottom:4px solid #fff;border-right:4px solid #fff;border-radius:0 0 12px 0;"></div>
+         style="padding-bottom:80px; transform:translateY(-30px);">
+        <div class="relative" style="width:270px;height:270px;">
+            <div class="absolute top-0 left-0 w-20 h-20"
+                 style="border-top:4px solid #fff;border-left:4px solid #fff;border-radius:20px 0 0 0;"></div>
+            <div class="absolute top-0 right-0 w-20 h-20"
+                 style="border-top:4px solid #fff;border-right:4px solid #fff;border-radius:0 20px 0 0;"></div>
+            <div class="absolute bottom-0 left-0 w-20 h-20"
+                 style="border-bottom:4px solid #fff;border-left:4px solid #fff;border-radius:0 0 0 20px;"></div>
+            <div class="absolute bottom-0 right-0 w-20 h-20"
+                 style="border-bottom:4px solid #fff;border-right:4px solid #fff;border-radius:0 0 20px 0;"></div>
         </div>
     </div>
 
