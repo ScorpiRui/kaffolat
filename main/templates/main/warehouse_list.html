@@ -4,53 +4,176 @@
 
 {% block content %}
 <style>body { background: #F3F4F6 !important; } #topBar { background: #fff !important; }</style>
-<div class="space-y-3">
+<div class="space-y-4">
 
-    <h1 class="text-lg font-bold text-gray-900 px-1">Ombor</h1>
-    <p class="text-xs text-gray-400 px-1 -mt-2">Ta'mirlanayotgan mahsulotlar</p>
+    <div class="px-1">
+        <h1 class="text-lg font-bold text-gray-900">Ombor</h1>
+    </div>
 
-    {% if items %}
-        {% for item in items %}
-        <a href="{% url 'main:item_detail' item.pk %}"
-           class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
-            <div class="flex items-center space-x-3 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0
-                            text-red-600 font-bold text-sm">
-                    {{ item.display_name|slice:":1"|upper }}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="rounded-2xl px-4 py-3 text-sm font-medium
+        {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-100
+        {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-100
+        {% else %}bg-gray-50 text-gray-800 border border-gray-100{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if not items_in_process and not items_ready %}
+    <div class="bg-white rounded-2xl p-10 text-center shadow-sm">
+        <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+        </div>
+        <p class="text-sm font-medium text-gray-400">Ombor bo'sh</p>
+        <p class="text-xs text-gray-300 mt-1">Ta'mirlash uchun QR skanerdan foydalaning</p>
+    </div>
+    {% else %}
+
+    <!-- Toggle: Jarayonda | Tayyor -->
+    <div class="flex bg-gray-200 rounded-xl p-1 mx-1" style="max-width:100%;">
+        <button type="button" id="whTabProcess"
+                class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors
+                       bg-gray-900 text-white shadow">
+            Jarayonda
+            <span class="wh-count opacity-90 font-bold">({{ items_in_process|length }})</span>
+        </button>
+        <button type="button" id="whTabReady"
+                class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors text-gray-500">
+            Tayyor
+            <span class="wh-count opacity-90 font-bold">({{ items_ready|length }})</span>
+        </button>
+    </div>
+
+    <!-- Panel: Jarayonda -->
+    <div id="whPanelProcess" class="warehouse-panel space-y-2">
+        {% if items_in_process %}
+            {% for item in items_in_process %}
+            <a href="{% url 'main:item_detail' item.pk %}"
+               class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0
+                                text-amber-700 font-bold text-sm">
+                        {{ item.display_name|slice:":1"|upper }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
+                        <p class="text-xs text-gray-400 truncate">
+                            {{ item.client_phone|default:item.qr_id }}
+                        </p>
+                    </div>
                 </div>
-                <div class="min-w-0">
-                    <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
-                    <p class="text-xs text-gray-400 truncate">
-                        {{ item.client_phone|default:item.qr_id }}
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2 flex-shrink-0 ml-2">
-                <div class="text-right">
-                    {% if item.repair_deadline %}
-                    <p class="text-xs text-red-500 font-medium">{{ item.repair_deadline }}</p>
-                    {% endif %}
-                    {% if item.repair_price %}
-                    <p class="text-xs text-gray-500">{{ item.repair_price|floatformat:0 }} so'm</p>
-                    {% endif %}
-                </div>
-                <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-gray-300 flex-shrink-0 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                 </svg>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="bg-white rounded-2xl px-4 py-8 text-center shadow-sm border border-dashed border-gray-200">
+                <p class="text-sm text-gray-400">Hozircha jarayondagi mahsulot yo'q</p>
             </div>
-        </a>
-        {% endfor %}
-    {% else %}
-        <div class="bg-white rounded-2xl p-10 text-center shadow-sm">
-            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
+        {% endif %}
+    </div>
+
+    <!-- Panel: Tayyor -->
+    <div id="whPanelReady" class="warehouse-panel space-y-2 hidden">
+        {% if items_ready %}
+            {% for item in items_ready %}
+            <a href="{% url 'main:item_detail' item.pk %}"
+               class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0
+                                text-green-700 font-bold text-sm">
+                        {{ item.display_name|slice:":1"|upper }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
+                        <p class="text-xs text-gray-400 truncate">
+                            {{ item.client_phone|default:item.qr_id }}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 flex-shrink-0 ml-2">
+                    <div class="text-right">
+                        {% if item.repair_deadline %}
+                        <p class="text-xs text-red-500 font-medium">{{ item.repair_deadline }}</p>
+                        {% endif %}
+                        {% if item.repair_price %}
+                        <p class="text-xs text-gray-500">{{ item.repair_price|floatformat:0 }} so'm</p>
+                        {% endif %}
+                    </div>
+                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="bg-white rounded-2xl px-4 py-8 text-center shadow-sm border border-dashed border-gray-200">
+                <p class="text-sm text-gray-400">Tayyor bo'limida mahsulot yo'q</p>
             </div>
-            <p class="text-sm font-medium text-gray-400">Ombor hozircha bo'sh</p>
-            <p class="text-xs text-gray-300 mt-1">Ta'mirlash uchun QR skanerdan foydalaning</p>
-        </div>
+        {% endif %}
+    </div>
+
+    <script>
+    (function () {
+        var panelP = document.getElementById('whPanelProcess');
+        var panelR = document.getElementById('whPanelReady');
+        var tabP = document.getElementById('whTabProcess');
+        var tabR = document.getElementById('whTabReady');
+        var nProcess = {{ items_in_process|length }};
+        var nReady = {{ items_ready|length }};
+
+        function styleActive(isProcess) {
+            if (isProcess) {
+                tabP.classList.add('bg-gray-900', 'text-white', 'shadow');
+                tabP.classList.remove('text-gray-500');
+                tabR.classList.remove('bg-gray-900', 'text-white', 'shadow');
+                tabR.classList.add('text-gray-500');
+            } else {
+                tabR.classList.add('bg-gray-900', 'text-white', 'shadow');
+                tabR.classList.remove('text-gray-500');
+                tabP.classList.remove('bg-gray-900', 'text-white', 'shadow');
+                tabP.classList.add('text-gray-500');
+            }
+        }
+
+        function showProcess() {
+            panelP.classList.remove('hidden');
+            panelR.classList.add('hidden');
+            styleActive(true);
+            try { sessionStorage.setItem('warehouseTab', 'process'); } catch (e) {}
+        }
+
+        function showReady() {
+            panelR.classList.remove('hidden');
+            panelP.classList.add('hidden');
+            styleActive(false);
+            try { sessionStorage.setItem('warehouseTab', 'ready'); } catch (e) {}
+        }
+
+        tabP.addEventListener('click', showProcess);
+        tabR.addEventListener('click', showReady);
+
+        var saved = '';
+        try { saved = sessionStorage.getItem('warehouseTab') || ''; } catch (e) {}
+
+        if (saved === 'ready') {
+            showReady();
+        } else if (saved === 'process') {
+            showProcess();
+        } else if (nProcess === 0 && nReady > 0) {
+            showReady();
+        } else {
+            showProcess();
+        }
+    })();
+    </script>
+
     {% endif %}
 
 </div>

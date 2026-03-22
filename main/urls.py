@@ -9,6 +9,11 @@ urlpatterns = [
     path("", views.shop_home, name="shop_home"),
     path("qr/<str:qr_id>/", views.qr_handler, name="qr_handler"),
     path("warehouse/", views.warehouse_list, name="warehouse_list"),
+    path(
+        "warehouse/item/<int:pk>/ready/",
+        views.warehouse_mark_ready,
+        name="warehouse_mark_ready",
+    ),
     path("product-types/", views.product_type_list, name="product_type_list"),
     path("product-types/create/", views.product_type_create, name="product_type_create"),
     path("product-types/<int:pk>/edit/", views.product_type_edit, name="product_type_edit"),

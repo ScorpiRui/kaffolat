@@ -112,9 +112,12 @@ class RepairForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        repair_intake = kwargs.pop("repair_intake", False)
         super().__init__(*args, **kwargs)
         self.fields["custom_name"].required = True
         self.fields["client_phone"].required = True
+        # First QR scan (repair intake): planned completion date required
+        self.fields["repair_deadline"].required = bool(repair_intake)
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -125,6 +128,30 @@ class RepairForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class RepairWarehouseEditForm(forms.ModelForm):
+    """Ombor / ta'mirlash kartasida faqat asosiy ma'lumotlar (narx, kafolat, muddat tahrirsiz)."""
+
+    class Meta:
+        model = QrItem
+        fields = ["custom_name", "custom_description", "client_phone"]
+        widgets = {
+            "custom_name": forms.TextInput(attrs={
+                "class": INPUT, "placeholder": "Mahsulot nomi",
+            }),
+            "custom_description": forms.Textarea(attrs={
+                "class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)",
+            }),
+            "client_phone": forms.TextInput(attrs={
+                "class": INPUT, "placeholder": "+998 90 000 00 00", "type": "tel",
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["custom_name"].required = True
+        self.fields["client_phone"].required = True
 
 
 class ProductTypeForm(forms.ModelForm):

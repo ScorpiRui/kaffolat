@@ -78,28 +78,6 @@
             </div>
             {% endif %}
 
-            {% if mode == "repair" %}
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Ta'mirlash narxi <span class="text-gray-300 font-normal normal-case">(ixtiyoriy)</span>
-                </label>
-                {{ form.repair_price }}
-                {% for e in form.repair_price.errors %}
-                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
-                {% endfor %}
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Tayyor bo'lish sanasi <span class="text-gray-300 font-normal normal-case">(ixtiyoriy)</span>
-                </label>
-                {{ form.repair_deadline }}
-                {% for e in form.repair_deadline.errors %}
-                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
-
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Telefon raqami
@@ -110,6 +88,7 @@
                 {% endfor %}
             </div>
 
+            {% if mode == "warranty" %}
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
                     Kafolat muddati <span class="text-gray-300 font-normal normal-case">(sana yoki tugmalar)</span>
@@ -143,6 +122,7 @@
                     <p class="text-xs text-red-500 mt-1">{{ e }}</p>
                 {% endfor %}
             </div>
+            {% endif %}
             {% endif %}
 
             <button type="submit"

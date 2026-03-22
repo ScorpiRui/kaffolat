@@ -9,7 +9,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 
-from .forms import ProductTypeForm, RepairForm, ShopProfileForm, ShopRegistrationForm, WarrantySellForm
+from .forms import (
+    ProductTypeForm,
+    RepairForm,
+    RepairWarehouseEditForm,
+    ShopProfileForm,
+    ShopRegistrationForm,
+    WarrantySellForm,
+)
 from .models import ProductType, QrItem, Shop, WarehouseRecord
 
 
@@ -58,7 +65,7 @@ def qr_handler(request, qr_id: str):
 
     if mode == "repair":
         if request.method == "POST":
-            form = RepairForm(request.POST)
+            form = RepairForm(request.POST, repair_intake=True)
             if form.is_valid():
                 item = form.save(commit=False)
                 item.shop = shop
@@ -74,7 +81,7 @@ def qr_handler(request, qr_id: str):
                 )
                 return redirect("main:item_detail", pk=item.pk)
         else:
-            form = RepairForm()
+            form = RepairForm(repair_intake=True)
         return render(request, "main/qr_item_form.html", {
             "shop": shop,
             "qr_id": qr_id,
@@ -114,12 +121,45 @@ def qr_handler(request, qr_id: str):
 @login_required
 def warehouse_list(request):
     shop = _get_shop_for_request(request)
-    items = (
+    base = (
         QrItem.objects
         .filter(shop=shop, item_type=QrItem.TYPE_REPAIR, is_completed=False)
         .select_related("product_type")
     )
-    return render(request, "main/warehouse_list.html", {"shop": shop, "items": items})
+    items_in_process = base.filter(repair_ready_to_finish=False).order_by("-created_at")
+    items_ready = base.filter(repair_ready_to_finish=True).order_by("-created_at")
+    return render(
+        request,
+        "main/warehouse_list.html",
+        {
+            "shop": shop,
+            "items_in_process": items_in_process,
+            "items_ready": items_ready,
+        },
+    )
+
+
+@csrf_exempt
+@login_required
+def warehouse_mark_ready(request, pk: int):
+    """Ombor: \"Jarayonda\" → \"Tayyor\" bo'limi."""
+    shop = _get_shop_for_request(request)
+    item = get_object_or_404(QrItem, pk=pk, shop=shop)
+    if (
+        request.method == "POST"
+        and item.is_repair
+        and not item.is_completed
+        and not item.repair_ready_to_finish
+    ):
+        item.repair_ready_to_finish = True
+        item.save(update_fields=["repair_ready_to_finish"])
+        WarehouseRecord.objects.create(
+            item=item,
+            action=WarehouseRecord.ACTION_WAREHOUSE_READY,
+            note="Ta'mirlash tayyor: yakunlash bo'limiga o'tkazildi",
+        )
+        messages.success(request, "Mahsulot \"Tayyor\" bo'limiga o'tkazildi. Endi Yakunlashni bosing.")
+    return redirect("main:item_detail", pk=pk)
 
 
 # -- Item detail --
@@ -144,6 +184,51 @@ def item_detail(request, pk: int):
     })
 
 
+def _format_history_value(val):
+    if val is None or val == "":
+        return "—"
+    if hasattr(val, "strftime"):
+        return val.strftime("%d/%m/%Y")
+    return str(val)
+
+
+def _build_item_edit_history_note(old_values: dict, item: QrItem, fields: list) -> str:
+    changes = []
+    for attr, label in fields:
+        new_val = getattr(item, attr)
+        old_val = old_values.get(attr)
+        if old_val != new_val:
+            changes.append(
+                f"{label}: {_format_history_value(old_val)} → {_format_history_value(new_val)}"
+            )
+    if not changes:
+        return "Tahrir: o'zgarish kiritilmadi."
+    return "Tahrir: " + "; ".join(changes)
+
+
+def _snapshot_item_fields_for_history(pk: int, field_specs: list) -> dict:
+    """DBdan eski qiymatlar — form instance bilan aralashmaydi."""
+    names = [a for a, _ in field_specs]
+    row = QrItem.objects.filter(pk=pk).values(*names).first()
+    return dict(row) if row else {}
+
+
+_REPAIR_EDIT_HISTORY_FIELDS = [
+    ("custom_name", "Nomi"),
+    ("custom_description", "Tavsif"),
+    ("client_phone", "Telefon"),
+]
+
+_WARRANTY_EDIT_HISTORY_FIELDS = [
+    ("custom_name", "Nomi"),
+    ("custom_description", "Tavsif"),
+    ("sold_price", "Sotuv narxi"),
+    ("client_phone", "Telefon"),
+    ("warranty_until_date", "Kafolat muddati"),
+    ("warranty_mileage", "Kafolat (km)"),
+]
+
+
 # -- Edit item (warehouse repair or history warranty / completed repair) --
 
 @csrf_exempt
@@ -164,28 +249,34 @@ def item_edit(request, pk: int):
 
     if item.is_repair:
         if request.method == "POST":
-            form = RepairForm(request.POST, instance=item)
+            old_values = _snapshot_item_fields_for_history(item.pk, _REPAIR_EDIT_HISTORY_FIELDS)
+            form = RepairWarehouseEditForm(request.POST, instance=item)
             if form.is_valid():
                 form.save()
+                item.refresh_from_db()
+                note = _build_item_edit_history_note(old_values, item, _REPAIR_EDIT_HISTORY_FIELDS)
                 WarehouseRecord.objects.create(
                     item=item,
                     action=WarehouseRecord.ACTION_UPDATED,
-                    note="Ma'lumotlar tahrirlandi",
+                    note=note,
                 )
                 messages.success(request, "O'zgarishlar saqlandi.")
                 return redirect("main:item_detail", pk=item.pk)
         else:
-            form = RepairForm(instance=item)
+            form = RepairWarehouseEditForm(instance=item)
         mode = "repair"
     else:
         if request.method == "POST":
+            old_values = _snapshot_item_fields_for_history(item.pk, _WARRANTY_EDIT_HISTORY_FIELDS)
             form = WarrantySellForm(request.POST, instance=item)
             if form.is_valid():
                 form.save()
+                item.refresh_from_db()
+                note = _build_item_edit_history_note(old_values, item, _WARRANTY_EDIT_HISTORY_FIELDS)
                 WarehouseRecord.objects.create(
                     item=item,
                     action=WarehouseRecord.ACTION_UPDATED,
-                    note="Ma'lumotlar tahrirlandi",
+                    note=note,
                 )
                 messages.success(request, "O'zgarishlar saqlandi.")
                 return redirect("main:item_detail", pk=item.pk)
@@ -193,7 +284,8 @@ def item_edit(request, pk: int):
             form = WarrantySellForm(instance=item)
         mode = "warranty"
 
-    form.fields["warranty_until_date"].widget.attrs["id"] = "warrantyDateInput"
+    if mode == "warranty":
+        form.fields["warranty_until_date"].widget.attrs["id"] = "warrantyDateInput"
 
     return render(request, "main/item_edit.html", {
         "shop": shop,
@@ -212,6 +304,12 @@ def complete_repair(request, pk: int):
     shop = _get_shop_for_request(request)
     item = get_object_or_404(QrItem, pk=pk, shop=shop)
     if request.method == "POST" and item.is_repair and not item.is_completed:
+        if not item.repair_ready_to_finish:
+            messages.error(
+                request,
+                "Avval \"Tayyor\" tugmasini bosing (mahsulot sahifasida), keyin yakunlang.",
+            )
+            return redirect("main:item_detail", pk=pk)
         repair_price = request.POST.get("repair_price", "").strip()
         if repair_price:
             try:
@@ -231,6 +329,7 @@ def complete_repair(request, pk: int):
             action=WarehouseRecord.ACTION_COMPLETED,
             note="Ta'mirlash yakunlandi, mijozga topshirildi",
         )
+        messages.success(request, "Ta'mirlash yakunlandi. Mahsulot endi Tarix bo'limida.")
     return redirect("main:item_detail", pk=pk)
 
 
@@ -243,7 +342,8 @@ def revert_complete(request, pk: int):
     item = get_object_or_404(QrItem, pk=pk, shop=shop)
     if request.method == "POST" and item.is_repair and item.is_completed:
         item.is_completed = False
-        item.save()
+        item.repair_ready_to_finish = False
+        item.save(update_fields=["is_completed", "repair_ready_to_finish"])
         WarehouseRecord.objects.create(
             item=item,
             action=WarehouseRecord.ACTION_REVERTED,

@@ -58,6 +58,8 @@ class QrItem(models.Model):
     repair_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     repair_deadline = models.DateField(null=True, blank=True)
     is_completed = models.BooleanField(default=False)
+    # Ta'mirlash: False = ombor "Jarayonda", True = "Tayyor" (yakunlash mumkin)
+    repair_ready_to_finish = models.BooleanField(default=False)
     purchase_date = models.DateField(default=timezone.now)
     client_phone = models.CharField(max_length=32, blank=True)
     warranty_until_date = models.DateField(null=True, blank=True)
@@ -101,12 +103,14 @@ class WarehouseRecord(models.Model):
     ACTION_WARRANTY_CHECK = "warranty_check"
     ACTION_REVERTED = "reverted"
     ACTION_COMPLETED = "completed"
+    ACTION_WAREHOUSE_READY = "warehouse_ready"
     ACTION_CHOICES = [
         (ACTION_CREATED, "Created"),
         (ACTION_UPDATED, "Updated"),
         (ACTION_WARRANTY_CHECK, "Warranty check"),
         (ACTION_REVERTED, "Reverted"),
         (ACTION_COMPLETED, "Completed"),
+        (ACTION_WAREHOUSE_READY, "Warehouse ready"),
     ]
 
     item = models.ForeignKey(QrItem, on_delete=models.CASCADE, related_name="history")
