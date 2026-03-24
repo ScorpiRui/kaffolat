@@ -1,5 +1,11 @@
 {% extends "main/base.html" %}
 
+{% block head_extra %}
+<style>
+    body { background: #ffffff !important; }
+</style>
+{% endblock %}
+
 {% block title %}{% if mode == "repair" %}Ta'mirlash{% else %}Kafolat{% endif %}{% endblock %}
 
 {% block header_right %}
@@ -10,11 +16,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-4">
 
+<div class="space-y-4">
     <!-- QR badge -->
-    <div class="flex items-center space-x-3 {% if mode == 'repair' %}bg-red-50 border border-red-200{% else %}bg-blue-50 border border-blue-200{% endif %} rounded-2xl px-4 py-3">
-        <svg class="w-8 h-8 {% if mode == 'repair' %}text-red-400{% else %}text-blue-400{% endif %} flex-shrink-0" fill="none" stroke="currentColor"
+    <div class="flex items-center space-x-3 {% if mode == 'repair' %}bg-red-50 border border-red-200{% else %}bg-blue-50 border border-blue-200{% endif %} rounded-2xl px-4 py-4">
+        <svg class="w-11 h-11 {% if mode == 'repair' %}text-red-400{% else %}text-blue-400{% endif %} flex-shrink-0" fill="none" stroke="currentColor"
              stroke-width="1.5" viewBox="0 0 24 24">
             <rect x="3" y="3" width="7" height="7" rx="1" stroke-width="1.8"/>
             <rect x="14" y="3" width="7" height="7" rx="1" stroke-width="1.8"/>
@@ -22,19 +28,19 @@
             <path stroke-linecap="round" stroke-linejoin="round"
                   d="M14 14h2v2h-2v2h2M18 14h2v2M18 18v2h2"/>
         </svg>
-        <div>
-            <p class="text-xs {% if mode == 'repair' %}text-red-400{% else %}text-blue-400{% endif %} font-medium">
+        <div class="min-w-0 flex-1">
+            <p class="text-base {% if mode == 'repair' %}text-red-500{% else %}text-blue-500{% endif %} font-semibold">
                 {% if mode == "repair" %}Ta'mirlash{% else %}Kafolat{% endif %}
             </p>
-            <p class="text-sm font-bold {% if mode == 'repair' %}text-red-700{% else %}text-blue-700{% endif %} font-mono">{{ qr_id }}</p>
+            <p class="text-xl sm:text-2xl font-bold {% if mode == 'repair' %}text-red-800{% else %}text-blue-800{% endif %} font-mono tracking-tight break-all leading-tight mt-0.5">{{ qr_id }}</p>
         </div>
-        <span class="ml-auto text-xs {% if mode == 'repair' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} font-semibold px-2.5 py-1 rounded-full">
+        <span class="ml-auto flex-shrink-0 text-sm {% if mode == 'repair' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %} font-bold px-3 py-1.5 rounded-full">
             Yangi
         </span>
     </div>
 
     <!-- Form card -->
-    <div class="bg-white rounded-2xl p-5 shadow-sm">
+    
         <h2 class="text-base font-bold text-gray-900 mb-1">
             {% if mode == "repair" %}Ta'mirlash ma'lumotlari{% else %}Sotish ma'lumotlari{% endif %}
         </h2>
@@ -87,36 +93,79 @@
             {% endif %}
 
             {% if mode == "repair" %}
-            <!-- Tayyor bo'lish sanasi: qo'lda sana + tezkor preset -->
+            <!-- Tayyor bo'lish muddati: faqat tanlash -->
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-                    Tayyor bo'lish sanasi
+                    Tayyor bo'lish muddati
                 </label>
-                {{ form.repair_deadline }}
+                {{ form.repair_deadline.as_hidden }}
                 {% for e in form.repair_deadline.errors %}
                     <p class="text-xs text-red-500 mt-1">{{ e }}</p>
                 {% endfor %}
+                <select id="repairDeadlineSelect"
+                        style="font-size:16px;width:100%;border-radius:12px;background:#fff;border:1px solid #e5e7eb;padding:12px 16px;color:#111827;outline:none;">
+                    <option value="">Tanlang...</option>
+                    <option value="1">1 kun</option>
+                    <option value="2">2 kun</option>
+                    <option value="3">3 kun</option>
+                    <option value="4">4 kun</option>
+                    <option value="5">5 kun</option>
+                    <option value="6">6 kun</option>
+                    <option value="7">7 kun</option>
+                    <option value="8">8 kun</option>
+                    <option value="9">9 kun</option>
+                    <option value="10">10 kun</option>
+                    <option value="15">15 kun</option>
+                    <option value="30">1 oy</option>
+                </select>
             </div>
             <script>
             (function(){
                 var sel = document.getElementById('repairDeadlineSelect');
                 var inp = document.getElementById('id_repair_deadline') || document.querySelector('input[name="repair_deadline"]');
                 if (!sel || !inp) return;
-                inp.addEventListener('input', function(){
-                    sel.value = '';
-                });
-                sel.addEventListener('change', function(){
-                    var days = parseInt(sel.value, 10);
-                    if (!days) return;
+                var allowed = ['1','2','3','4','5','6','7','8','9','10','15','30'];
+                function setDateFromDays(days) {
                     var d = new Date();
                     d.setDate(d.getDate() + days);
                     var dd = String(d.getDate()).padStart(2,'0');
                     var mm = String(d.getMonth()+1).padStart(2,'0');
                     var yyyy = d.getFullYear();
                     inp.value = dd+'/'+mm+'/'+yyyy;
+                }
+                function syncSelectFromHidden() {
+                    var v = (inp.value || '').trim();
+                    if (!v) return;
+                    var parts = v.split(/[./-]/);
+                    if (parts.length !== 3) return;
+                    var day = parseInt(parts[0],10), month = parseInt(parts[1],10)-1, year = parseInt(parts[2],10);
+                    if (isNaN(day)||isNaN(month)||isNaN(year)) return;
+                    var target = new Date(year, month, day);
+                    var t0 = new Date();
+                    t0.setHours(0,0,0,0);
+                    target.setHours(0,0,0,0);
+                    var diff = Math.round((target - t0) / 86400000);
+                    if (allowed.indexOf(String(diff)) >= 0) sel.value = String(diff);
+                }
+                sel.addEventListener('change', function(){
+                    var days = parseInt(sel.value, 10);
+                    if (!days) { inp.value = ''; return; }
+                    setDateFromDays(days);
                 });
+                syncSelectFromHidden();
             })();
             </script>
+
+            <!-- Ta'mirlash narxi -->
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Ta'mirlash narxi <span class="text-gray-300 font-normal normal-case">(ixtiyoriy)</span>
+                </label>
+                {{ form.repair_price }}
+                {% for e in form.repair_price.errors %}
+                    <p class="text-xs text-red-500 mt-1">{{ e }}</p>
+                {% endfor %}
+            </div>
             {% endif %}
 
             <!-- Phone -->
@@ -125,10 +174,32 @@
                     Telefon raqami
                 </label>
                 {{ form.client_phone }}
+                {% if mode == "repair" %}
+                {% endif %}
                 {% for e in form.client_phone.errors %}
                     <p class="text-xs text-red-500 mt-1">{{ e }}</p>
                 {% endfor %}
             </div>
+
+            {% if mode == "repair" %}
+            <script>
+            (function(){
+                var el = document.getElementById('id_client_phone');
+                if (!el) return;
+                var P = '+998';
+                function normalize() {
+                    var d = (el.value || '').replace(/\D/g, '');
+                    if (d.indexOf('998') === 0) d = d.slice(3);
+                    d = d.slice(0, 9);
+                    el.value = P + d;
+                }
+                el.addEventListener('input', normalize);
+                el.addEventListener('blur', normalize);
+                if (!el.value) el.value = P;
+                else normalize();
+            })();
+            </script>
+            {% endif %}
 
             {% if mode == "warranty" %}
             <!-- Warranty date -->
@@ -186,7 +257,7 @@
 
             <button type="submit"
                     class="w-full {% if mode == 'repair' %}bg-gray-900 active:bg-black{% else %}bg-gray-900 active:bg-black{% endif %} text-white font-semibold py-3.5 rounded-xl mt-2">
-                {% if mode == "repair" %}Omborga saqlash{% else %}Sotish{% endif %}
+                {% if mode == "repair" %}Omborga saqlash{% else %}Saqlash{% endif %}
             </button>
         </form>
     </div>

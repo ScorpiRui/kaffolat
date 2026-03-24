@@ -120,27 +120,17 @@
                 <p class="font-bold text-gray-900 text-base leading-snug">
                     {{ item.display_name }}
                 </p>
-                <p class="text-sm text-gray-400 mt-1">
+                <p class="text-sm text-gray-500 mt-1">
                     {{ item.created_at|date:"d.m.Y" }} · {{ item.created_at|date:"H:i" }}
                 </p>
             </div>
 
-            <div class="flex items-center gap-1 flex-shrink-0">
-                {% if item.is_warranty %}
-                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-red-50 text-red-500" title="Kafolat">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-                    </svg>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <span class="text-xs font-bold px-3 py-1.5 rounded-full tracking-wide
+                      {% if item.is_warranty %}bg-blue-100 text-blue-800{% else %}bg-red-100 text-red-800{% endif %}">
+                    {% if item.is_warranty %}Kafolat{% else %}Ta'mirlash{% endif %}
                 </span>
-                {% else %}
-                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-green-50 text-green-600" title="Ta'mirlash">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </span>
-                {% endif %}
-
-                <svg class="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                 </svg>
             </div>

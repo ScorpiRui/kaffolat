@@ -1,5 +1,11 @@
 {% extends "main/base.html" %}
 
+{% block head_extra %}
+<style>
+    body { background: #ffffff !important; }
+</style>
+{% endblock %}
+
 {% block title %}Tahrirlash — {{ item.display_name }}{% endblock %}
 
 {% block header_right %}
@@ -13,8 +19,8 @@
 <div class="space-y-4">
 
     <!-- QR badge -->
-    <div class="flex items-center space-x-3 {% if mode == 'repair' %}bg-red-50 border border-red-200{% else %}bg-blue-50 border border-blue-200{% endif %} rounded-2xl px-4 py-3">
-        <svg class="w-8 h-8 {% if mode == 'repair' %}text-red-400{% else %}text-blue-400{% endif %} flex-shrink-0" fill="none" stroke="currentColor"
+    <div class="flex items-center space-x-3 {% if mode == 'repair' %}bg-red-50 border border-red-200{% else %}bg-blue-50 border border-blue-200{% endif %} rounded-2xl px-4 py-4">
+        <svg class="w-11 h-11 {% if mode == 'repair' %}text-red-400{% else %}text-blue-400{% endif %} flex-shrink-0" fill="none" stroke="currentColor"
              stroke-width="1.5" viewBox="0 0 24 24">
             <rect x="3" y="3" width="7" height="7" rx="1" stroke-width="1.8"/>
             <rect x="14" y="3" width="7" height="7" rx="1" stroke-width="1.8"/>
@@ -22,18 +28,18 @@
             <path stroke-linecap="round" stroke-linejoin="round"
                   d="M14 14h2v2h-2v2h2M18 14h2v2M18 18v2h2"/>
         </svg>
-        <div>
-            <p class="text-xs {% if mode == 'repair' %}text-red-400{% else %}text-blue-400{% endif %} font-medium">
+        <div class="min-w-0 flex-1">
+            <p class="text-base {% if mode == 'repair' %}text-red-500{% else %}text-blue-500{% endif %} font-semibold">
                 {% if mode == "repair" %}Ta'mirlash{% else %}Kafolat{% endif %}
             </p>
-            <p class="text-sm font-bold {% if mode == 'repair' %}text-red-700{% else %}text-blue-700{% endif %} font-mono">{{ item.qr_id }}</p>
+            <p class="text-xl sm:text-2xl font-bold {% if mode == 'repair' %}text-red-800{% else %}text-blue-800{% endif %} font-mono tracking-tight break-all leading-tight mt-0.5">{{ item.qr_id }}</p>
         </div>
-        <span class="ml-auto text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full">
+        <span class="ml-auto flex-shrink-0 text-sm bg-amber-100 text-amber-900 font-bold px-3 py-1.5 rounded-full">
             Tahrirlash
         </span>
     </div>
 
-    <div class="bg-white rounded-2xl p-5 shadow-sm">
+ 
         <h2 class="text-base font-bold text-gray-900 mb-1">Ma'lumotlarni yangilash</h2>
         <p class="text-xs text-gray-400 mb-4">Saqlashdan keyin tarixga yozuv qo'shiladi.</p>
 
@@ -130,7 +136,7 @@
                 Saqlash
             </button>
         </form>
-    </div>
+
 
 </div>
 {% endblock %}

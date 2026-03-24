@@ -2,6 +2,29 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+_UZ_MONTH_NAMES = (
+    "yanvar",
+    "fevral",
+    "mart",
+    "aprel",
+    "may",
+    "iyun",
+    "iyul",
+    "avgust",
+    "sentyabr",
+    "oktyabr",
+    "noyabr",
+    "dekabr",
+)
+
+
+def _format_date_uz(d) -> str:
+    """Masalan: 12-Dekabr, 2026-yil (vaqtsiz)."""
+    if d is None:
+        return ""
+    month = _UZ_MONTH_NAMES[d.month - 1].capitalize()
+    return f"{d.day}-{month}, {d.year}-yil"
+
 
 class Shop(models.Model):
     user = models.OneToOneField(
@@ -95,6 +118,13 @@ class QrItem(models.Model):
     @property
     def is_repair(self):
         return self.item_type == self.TYPE_REPAIR
+
+    @property
+    def created_at_uz(self) -> str:
+        """Qabul sanasi — lokal kun, o'zbekcha oy nomi, vaqtsiz."""
+        if self.created_at is None:
+            return ""
+        return _format_date_uz(timezone.localdate(self.created_at))
 
 
 class WarehouseRecord(models.Model):

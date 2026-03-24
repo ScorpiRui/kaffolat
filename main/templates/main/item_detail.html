@@ -1,4 +1,5 @@
 {% extends "main/base.html" %}
+{% load l10n %}
 
 {% block title %}{{ item.display_name }}{% endblock %}
 
@@ -46,9 +47,6 @@
     <!-- Product card -->
     <div class="bg-white rounded-2xl p-5 shadow-sm">
         <div class="flex items-start space-x-3 mb-4">
-            <div class="w-14 h-14 rounded-xl {% if item.is_repair %}bg-red-100 text-red-600{% else %}bg-blue-100 text-blue-600{% endif %} flex items-center justify-center flex-shrink-0 font-bold text-xl">
-                {{ item.display_name|slice:":1"|upper }}
-            </div>
             <div class="min-w-0 flex-1">
                 <h1 class="text-xl font-bold text-gray-900 leading-tight">{{ item.display_name }}</h1>
                 <p class="text-sm text-gray-400 mt-1">QR: {{ item.qr_id }}</p>
@@ -56,9 +54,7 @@
         </div>
 
         {% if item.custom_description %}
-        <p class="text-base text-gray-600 bg-gray-50 rounded-xl px-4 py-3 whitespace-pre-line mb-4 leading-relaxed">
-            {{ item.custom_description }}
-        </p>
+        <div class="text-gray-600 bg-gray-50 rounded-xl py-3 px-4 mb-4 leading-relaxed"><span class="block whitespace-pre-line">{{ item.custom_description }}</span></div>
         {% endif %}
 
         <div class="divide-y divide-gray-100">
@@ -84,17 +80,18 @@
             </div>
             {% endif %}
 
+            
+
+            <div class="flex justify-between items-center py-4 text-lg">
+                <span class="text-gray-500 text-base">Qabul qilingan sana</span>
+                <span class="font-semibold text-gray-900">{{ item.created_at_uz }}</span>
+            </div>
             {% if item.is_repair and item.repair_deadline %}
             <div class="flex justify-between items-center py-4 text-lg">
                 <span class="text-gray-500 text-base">Tayyor bo'lish sanasi</span>
                 <span class="font-semibold text-gray-900">{{ item.repair_deadline }}</span>
             </div>
             {% endif %}
-
-            <div class="flex justify-between items-center py-4 text-lg">
-                <span class="text-gray-500 text-base">Qo'shilgan sana</span>
-                <span class="font-semibold text-gray-900">{{ item.created_at|date:"d.m.Y" }}</span>
-            </div>
         </div>
     </div>
 
@@ -133,7 +130,7 @@
     <form method="post" action="{% url 'main:warehouse_mark_ready' item.pk %}" class="space-y-2">
         {% csrf_token %}
         <button type="submit"
-                class="w-full bg-gray-900 text-white text-lg font-semibold py-4 rounded-2xl shadow-sm active:bg-black
+                class="w-full bg-green-600 text-white text-lg font-semibold py-4 rounded-2xl shadow-sm active:bg-green-700
                        flex items-center justify-center space-x-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -162,15 +159,16 @@
             <h3 class="text-xl font-bold text-gray-900 mb-1">Ta'mirlash yakunlandi</h3>
             <p class="text-sm text-gray-500 mb-5">Narx va kafolat muddatini kiriting</p>
 
-            <form method="post" action="{% url 'main:complete_repair' item.pk %}" class="space-y-4">
+            <form method="post" action="{% url 'main:complete_repair' item.pk %}" class="space-y-4" data-default-repair-price="{% if item.repair_price %}{% localize off %}{{ item.repair_price|floatformat:0 }}{% endlocalize %}{% endif %}">
                 {% csrf_token %}
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">
                         Ta'mirlash narxi
                     </label>
-                    <input type="number" name="repair_price" inputmode="numeric" step="any"
+                    <input type="number" name="repair_price" id="modalRepairPriceInput" inputmode="numeric" step="any"
                            placeholder="0"
+                           {% if item.repair_price %}value="{% localize off %}{{ item.repair_price|floatformat:0 }}{% endlocalize %}"{% endif %}
                            style="font-size:18px;width:100%;border-radius:12px;background:#F3F4F6;border:1px solid #e5e7eb;padding:14px 16px;color:#111827;outline:none;">
                 </div>
 
@@ -217,7 +215,18 @@
         var inp = document.getElementById('modalWarrantyInput');
         var lbl = document.getElementById('modalWarrantyLabel');
 
-        function open() { modal.classList.remove('hidden'); document.body.style.overflow='hidden'; }
+        var priceInp = document.getElementById('modalRepairPriceInput');
+        var completeForm = document.querySelector('#completeModal form');
+        function open() {
+            modal.classList.remove('hidden');
+            document.body.style.overflow='hidden';
+            if (priceInp && completeForm) {
+                var def = completeForm.getAttribute('data-default-repair-price');
+                if (def && String(def).trim() !== '' && String(priceInp.value).trim() === '') {
+                    priceInp.value = def;
+                }
+            }
+        }
         function close() { modal.classList.add('hidden'); document.body.style.overflow=''; }
 
         btn.addEventListener('click', open);
@@ -246,14 +255,14 @@
 
     <!-- Edit button -->
     <a href="{% url 'main:item_edit' item.pk %}"
-       class="block w-full text-center bg-gray-900 text-white text-lg font-semibold py-4 rounded-2xl shadow-sm active:bg-black">
+       class="block w-full text-center bg-red-400 text-white text-lg font-semibold py-4 rounded-2xl shadow-sm active:bg-red-500">
         Tahrirlash
     </a>
 
     <!-- History -->
     {% if item.history.all %}
     <div class="bg-white rounded-2xl p-5 shadow-sm">
-        <h2 class="text-base font-semibold text-gray-900 mb-3">Tarix</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Tarix</h2>
         <div class="space-y-3">
             {% for record in item.history.all %}
             <div class="flex items-start space-x-3">
@@ -264,7 +273,7 @@
                     {% elif record.action == 'warehouse_ready' %}bg-amber-400
                     {% else %}bg-gray-400{% endif %}"></div>
                 <div>
-                    <p class="text-sm font-semibold text-gray-800">
+                    <p class="text-base font-semibold text-gray-800">
                         {% if record.action == 'created' %}Qo'shildi
                         {% elif record.action == 'completed' %}Yakunlandi
                         {% elif record.action == 'reverted' %}Qaytarildi
@@ -272,9 +281,9 @@
                         {% else %}Yangilandi{% endif %}
                     </p>
                     {% if record.note %}
-                        <p class="text-sm text-gray-500 italic mt-0.5">{{ record.note }}</p>
+                        <p class="text-base text-gray-500 italic mt-0.5">{{ record.note }}</p>
                     {% endif %}
-                    <p class="text-sm text-gray-400 mt-0.5">{{ record.created_at|date:"d.m.Y H:i" }}</p>
+                    <p class="text-base text-gray-400 mt-0.5">{{ record.created_at|date:"d.m.Y H:i" }}</p>
                 </div>
             </div>
             {% endfor %}

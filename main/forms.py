@@ -114,10 +114,31 @@ class RepairForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         repair_intake = kwargs.pop("repair_intake", False)
         super().__init__(*args, **kwargs)
+        self._repair_intake = repair_intake
         self.fields["custom_name"].required = True
         self.fields["client_phone"].required = True
         # First QR scan (repair intake): planned completion date required
         self.fields["repair_deadline"].required = bool(repair_intake)
+        if repair_intake:
+            if not self.is_bound:
+                self.fields["client_phone"].initial = "+998"
+            ph = self.fields["client_phone"]
+            ph.widget.attrs["placeholder"] = "90 123 45 67"
+            ph.widget.attrs["maxlength"] = "17"
+            ph.widget.attrs["autocomplete"] = "tel"
+
+    def clean_client_phone(self):
+        phone = (self.cleaned_data.get("client_phone") or "").strip()
+        phone = "".join(phone.split())
+        if getattr(self, "_repair_intake", False):
+            digits = "".join(c for c in phone if c.isdigit())
+            if digits.startswith("998"):
+                digits = digits[3:]
+            digits = digits[:9]
+            if not digits:
+                raise forms.ValidationError("Telefon raqamini kiriting (+998 dan keyin 9 raqam).")
+            phone = "+998" + digits
+        return phone
 
     def save(self, commit=True):
         instance = super().save(commit=False)

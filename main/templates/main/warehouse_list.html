@@ -56,10 +56,6 @@
             <a href="{% url 'main:item_detail' item.pk %}"
                class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
                 <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0
-                                text-amber-700 font-bold text-sm">
-                        {{ item.display_name|slice:":1"|upper }}
-                    </div>
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
                         <p class="text-xs text-gray-400 truncate">
@@ -86,10 +82,6 @@
             <a href="{% url 'main:item_detail' item.pk %}"
                class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
                 <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0
-                                text-green-700 font-bold text-sm">
-                        {{ item.display_name|slice:":1"|upper }}
-                    </div>
                     <div class="min-w-0">
                         <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
                         <p class="text-xs text-gray-400 truncate">
