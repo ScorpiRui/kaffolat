@@ -7,7 +7,7 @@
 <div class="space-y-4">
 
     <div class="px-1">
-        <h1 class="text-lg font-bold text-gray-900">Ombor</h1>
+        <h1 class="text-xl font-bold text-gray-900">Ombor</h1>
     </div>
 
     {% if messages %}
@@ -37,13 +37,13 @@
     <!-- Toggle: Jarayonda | Tayyor -->
     <div class="flex bg-gray-200 rounded-xl p-1 mx-1" style="max-width:100%;">
         <button type="button" id="whTabProcess"
-                class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors
+                class="flex-1 py-3 rounded-lg text-base font-semibold transition-colors
                        bg-gray-900 text-white shadow">
             Jarayonda
             <span class="wh-count opacity-90 font-bold">({{ items_in_process|length }})</span>
         </button>
         <button type="button" id="whTabReady"
-                class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors text-gray-500">
+                class="flex-1 py-3 rounded-lg text-base font-semibold transition-colors text-gray-500">
             Tayyor
             <span class="wh-count opacity-90 font-bold">({{ items_ready|length }})</span>
         </button>
@@ -54,23 +54,23 @@
         {% if items_in_process %}
             {% for item in items_in_process %}
             <a href="{% url 'main:item_detail' item.pk %}"
-               class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
+               class="flex items-center justify-between bg-white rounded-2xl px-4 py-5 shadow-sm active:bg-gray-50">
                 <div class="flex items-center space-x-3 min-w-0">
                     <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
-                        <p class="text-xs text-gray-400 truncate">
+                        <p class="text-lg font-bold text-gray-900 truncate">{{ item.display_name }}</p>
+                        <p class="text-sm text-gray-500 truncate mt-0.5">
                             {{ item.client_phone|default:item.qr_id }}
                         </p>
                     </div>
                 </div>
-                <svg class="w-4 h-4 text-gray-300 flex-shrink-0 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                 </svg>
             </a>
             {% endfor %}
         {% else %}
             <div class="bg-white rounded-2xl px-4 py-8 text-center shadow-sm border border-dashed border-gray-200">
-                <p class="text-sm text-gray-400">Hozircha jarayondagi mahsulot yo'q</p>
+                <p class="text-base text-gray-400">Hozircha jarayondagi mahsulot yo'q</p>
             </div>
         {% endif %}
     </div>
@@ -80,11 +80,11 @@
         {% if items_ready %}
             {% for item in items_ready %}
             <a href="{% url 'main:item_detail' item.pk %}"
-               class="flex items-center justify-between bg-white rounded-2xl px-4 py-4 shadow-sm active:bg-gray-50">
+               class="flex items-center justify-between bg-white rounded-2xl px-4 py-5 shadow-sm active:bg-gray-50">
                 <div class="flex items-center space-x-3 min-w-0">
                     <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-900 truncate">{{ item.display_name }}</p>
-                        <p class="text-xs text-gray-400 truncate">
+                        <p class="text-lg font-bold text-gray-900 truncate">{{ item.display_name }}</p>
+                        <p class="text-sm text-gray-500 truncate mt-0.5">
                             {{ item.client_phone|default:item.qr_id }}
                         </p>
                     </div>
@@ -92,13 +92,13 @@
                 <div class="flex items-center space-x-2 flex-shrink-0 ml-2">
                     <div class="text-right">
                         {% if item.repair_deadline %}
-                        <p class="text-xs text-red-500 font-medium">{{ item.repair_deadline }}</p>
+                        <p class="text-sm text-red-600 font-semibold">{{ item.repair_deadline }}</p>
                         {% endif %}
                         {% if item.repair_price %}
-                        <p class="text-xs text-gray-500">{{ item.repair_price|floatformat:0 }} so'm</p>
+                        <p class="text-sm text-gray-600 font-medium">{{ item.repair_price|floatformat:0 }} so'm</p>
                         {% endif %}
                     </div>
-                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                     </svg>
                 </div>
@@ -106,7 +106,7 @@
             {% endfor %}
         {% else %}
             <div class="bg-white rounded-2xl px-4 py-8 text-center shadow-sm border border-dashed border-gray-200">
-                <p class="text-sm text-gray-400">Tayyor bo'limida mahsulot yo'q</p>
+                <p class="text-base text-gray-400">Tayyor bo'limida mahsulot yo'q</p>
             </div>
         {% endif %}
     </div>
@@ -123,13 +123,13 @@
         function styleActive(isProcess) {
             if (isProcess) {
                 tabP.classList.add('bg-gray-900', 'text-white', 'shadow');
-                tabP.classList.remove('text-gray-500');
-                tabR.classList.remove('bg-gray-900', 'text-white', 'shadow');
+                tabP.classList.remove('text-gray-500', 'bg-green-600');
+                tabR.classList.remove('bg-gray-900', 'bg-green-600', 'text-white', 'shadow');
                 tabR.classList.add('text-gray-500');
             } else {
-                tabR.classList.add('bg-gray-900', 'text-white', 'shadow');
-                tabR.classList.remove('text-gray-500');
-                tabP.classList.remove('bg-gray-900', 'text-white', 'shadow');
+                tabR.classList.add('bg-green-600', 'text-white', 'shadow');
+                tabR.classList.remove('text-gray-500', 'bg-gray-900');
+                tabP.classList.remove('bg-gray-900', 'bg-green-600', 'text-white', 'shadow');
                 tabP.classList.add('text-gray-500');
             }
         }
