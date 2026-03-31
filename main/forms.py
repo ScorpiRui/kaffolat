@@ -12,7 +12,57 @@ INPUT = (
 DATE_INPUT_FORMATS = ["%d/%m/%Y", "%d.%m.%Y", "%Y-%m-%d"]
 
 
-class WarrantySellForm(forms.ModelForm):
+class ProductNameComboMixin:
+    """One text field (`custom_name`) + HTML datalist; exact name matches a ProductType."""
+
+    _PN_DATALIST_ID = "product-name-datalist"
+
+    def _pn_shop(self):
+        if getattr(self, "_shop", None) is not None:
+            return self._shop
+        if getattr(self, "instance", None) and self.instance.pk:
+            return self.instance.shop
+        return None
+
+    def _pn_init_field(self):
+        f = self.fields["custom_name"]
+        f.required = False
+        f.widget.attrs.setdefault("id", "id_custom_name")
+        f.widget.attrs["list"] = self._PN_DATALIST_ID
+        f.widget.attrs.setdefault(
+            "placeholder",
+            "Ro'yxatdan tanlang yoki nom yozing",
+        )
+        if self.instance.pk:
+            if self.instance.custom_name:
+                self.initial.setdefault("custom_name", self.instance.custom_name)
+            elif self.instance.product_type_id:
+                self.initial.setdefault("custom_name", self.instance.product_type.name)
+
+    def clean(self):
+        cleaned = super().clean()
+        name = (cleaned.get("custom_name") or "").strip()
+        if not name:
+            raise forms.ValidationError("Mahsulot nomini kiriting.")
+        shop = self._pn_shop()
+        pt = None
+        if shop:
+            pt = ProductType.objects.filter(
+                shop=shop, name__iexact=name, is_active=True
+            ).first()
+        self._resolved_product_type = pt
+        cleaned["custom_name"] = "" if pt else name
+        return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.product_type = getattr(self, "_resolved_product_type", None)
+        if commit:
+            instance.save()
+        return instance
+
+
+class WarrantySellForm(ProductNameComboMixin, forms.ModelForm):
     warranty_until_date = forms.DateField(
         required=False,
         input_formats=DATE_INPUT_FORMATS,
@@ -32,7 +82,8 @@ class WarrantySellForm(forms.ModelForm):
         ]
         widgets = {
             "custom_name": forms.TextInput(attrs={
-                "class": INPUT, "placeholder": "Mahsulot nomi",
+                "class": INPUT,
+                "id": "id_custom_name",
             }),
             "custom_description": forms.Textarea(attrs={
                 "class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)",
@@ -48,9 +99,10 @@ class WarrantySellForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, shop=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["custom_name"].required = True
+        self._shop = shop
+        self._pn_init_field()
         self.fields["sold_price"].required = True
         self.fields["client_phone"].required = True
 
@@ -65,7 +117,7 @@ class WarrantySellForm(forms.ModelForm):
         return instance
 
 
-class RepairForm(forms.ModelForm):
+class RepairForm(ProductNameComboMixin, forms.ModelForm):
     warranty_until_date = forms.DateField(
         required=False,
         input_formats=DATE_INPUT_FORMATS,
@@ -95,7 +147,8 @@ class RepairForm(forms.ModelForm):
         ]
         widgets = {
             "custom_name": forms.TextInput(attrs={
-                "class": INPUT, "placeholder": "Mahsulot nomi",
+                "class": INPUT,
+                "id": "id_custom_name",
             }),
             "custom_description": forms.Textarea(attrs={
                 "class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)",
@@ -111,11 +164,12 @@ class RepairForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, shop=None, **kwargs):
         repair_intake = kwargs.pop("repair_intake", False)
         super().__init__(*args, **kwargs)
         self._repair_intake = repair_intake
-        self.fields["custom_name"].required = True
+        self._shop = shop
+        self._pn_init_field()
         self.fields["client_phone"].required = True
         # First QR scan (repair intake): planned completion date required
         self.fields["repair_deadline"].required = bool(repair_intake)
@@ -151,7 +205,7 @@ class RepairForm(forms.ModelForm):
         return instance
 
 
-class RepairWarehouseEditForm(forms.ModelForm):
+class RepairWarehouseEditForm(ProductNameComboMixin, forms.ModelForm):
     """Ombor / ta'mirlash kartasida faqat asosiy ma'lumotlar (narx, kafolat, muddat tahrirsiz)."""
 
     class Meta:
@@ -159,7 +213,8 @@ class RepairWarehouseEditForm(forms.ModelForm):
         fields = ["custom_name", "custom_description", "client_phone"]
         widgets = {
             "custom_name": forms.TextInput(attrs={
-                "class": INPUT, "placeholder": "Mahsulot nomi",
+                "class": INPUT,
+                "id": "id_custom_name",
             }),
             "custom_description": forms.Textarea(attrs={
                 "class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)",
@@ -169,22 +224,19 @@ class RepairWarehouseEditForm(forms.ModelForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, shop=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["custom_name"].required = True
+        self._shop = shop
+        self._pn_init_field()
         self.fields["client_phone"].required = True
 
 
 class ProductTypeForm(forms.ModelForm):
     class Meta:
         model = ProductType
-        fields = ["name", "default_description", "is_active"]
+        fields = ["name"]
         widgets = {
             "name": forms.TextInput(attrs={"class": INPUT, "placeholder": "Masalan: Avtomobil"}),
-            "default_description": forms.Textarea(
-                attrs={"class": INPUT, "rows": 3, "placeholder": "Tavsif (ixtiyoriy)"}
-            ),
-            "is_active": forms.CheckboxInput(attrs={"class": "rounded border-gray-300"}),
         }
 
 

@@ -44,7 +44,7 @@
         <div id="topBarInner" class="flex items-center w-full gap-2 min-w-0" style="height:70px; padding:0 16px;">
             {% with active=request.resolver_match.url_name %}
             {% if shop %}
-                {% if active == 'shop_home' or active == 'warranty_history' or active == 'warehouse_list' or active == 'shop_profile' %}
+                {% if active == 'shop_home' or active == 'warranty_history' or active == 'warehouse_list' or active == 'shop_profile' or active == 'shop_products' %}
                     <h1 class="text-2xl font-bold text-gray-900 truncate flex-1 min-w-0 leading-tight">{{ shop.name }}</h1>
                 {% endif %}
             {% endif %}
@@ -97,8 +97,8 @@
             <!-- Profil -->
             <a href="{% url 'main:shop_profile' %}"
                class="nav-item flex-1 flex flex-col items-center justify-center gap-1
-                      {% if active == 'shop_profile' %}text-gray-900{% else %}text-gray-400{% endif %}">
-                <span class="{% if active == 'shop_profile' %}nav-active-icon{% endif %} flex items-center justify-center">
+                      {% if active == 'shop_profile' or active == 'shop_products' %}text-gray-900{% else %}text-gray-400{% endif %}">
+                <span class="{% if active == 'shop_profile' or active == 'shop_products' %}nav-active-icon{% endif %} flex items-center justify-center">
                     {% include "main/icons/profile.svg" %}
                 </span>
                 <span class="text-xs font-medium leading-none">Profil</span>

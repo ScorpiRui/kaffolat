@@ -60,6 +60,12 @@
                 {% for e in form.custom_name.errors %}
                     <p class="text-xs text-red-500 mt-1">{{ e }}</p>
                 {% endfor %}
+                <datalist id="product-name-datalist">
+                    {% for n in product_name_options %}
+                    <option value="{{ n }}">
+                    {% endfor %}
+                </datalist>
+                <p class="text-xs text-gray-400 mt-1.5">Ro'yxatdan tanlang yoki nom yozing.</p>
             </div>
 
             <div>

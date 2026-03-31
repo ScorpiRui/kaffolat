@@ -23,6 +23,7 @@ urlpatterns = [
     path("item/<int:pk>/complete/", views.complete_repair, name="complete_repair"),
     path("history/", views.warranty_history, name="warranty_history"),
     path("profile/", views.shop_profile, name="shop_profile"),
+    path("profile/products/", views.shop_products, name="shop_products"),
     path("p/<str:qr_id>/", views.public_item_detail, name="public_item_detail"),
     path("qr", views.public_item_from_query, name="public_item_from_query"),
     path("shops/register/", views.shop_register, name="shop_register"),
